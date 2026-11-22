@@ -1,0 +1,2 @@
+# Optional: deep segmentation of farm plans (see app/cv/segmentation.py)
+torch>=2.3

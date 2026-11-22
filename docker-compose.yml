@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: agrosphere
+      POSTGRES_USER: agrosphere
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U agrosphere"], interval: 5s, retries: 20 }
+  backend:
+    build: ./backend
+    environment:
+      AGRO_DATABASE_URL: postgresql+psycopg://agrosphere:${POSTGRES_PASSWORD}@db:5432/agrosphere
+      AGRO_JWT_SECRET: ${AGRO_JWT_SECRET:?set AGRO_JWT_SECRET in .env}
+      AGRO_ENVIRONMENT: production
+      AGRO_CORS_ORIGINS: ${AGRO_CORS_ORIGINS:-http://localhost:8080}
+    volumes: [uploads:/app/data/uploads]
+    depends_on: { db: { condition: service_healthy } }
+  frontend:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on: [backend]
+volumes: { pgdata: {}, uploads: {} }
