@@ -286,7 +286,7 @@ def report_csv(year: int | None = None, db: Session = Depends(get_db), _: User =
             "water_mm3_if_irrigated", "imports_kt", "exports_kt", "reserve_target_kt", "demand_model",
             "demand_mape_pct", "per_capita_quality"]
     w = csv.writer(buf)
-    w.writerow(["# AgroSphere AI national balance", f"year={bal.get('year')}",
+    w.writerow(["# TuniNō national balance", f"year={bal.get('year')}",
                 f"population={bal.get('population')} ({bal.get('population_quality')})",
                 f"margin={bal.get('safety_margin_pct')}%", "sources=FAOSTAT FBS/QCL, World Bank, NASA POWER"])
     w.writerow(["crop_name"] + cols)

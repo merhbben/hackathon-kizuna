@@ -15,6 +15,10 @@
 | **ONAGRI / CRDA / data.gov.tn** | Barrages (réserves et capacité), surfaces irriguées, rendements régionaux, allocations d'eau | Bulletins PDF/XLS : import CSV | Officiel (importé) | 📥 Import manuel |
 | **INM** | Stations météo | Pas d'API publique : import CSV | Mesuré | 📥 Import manuel |
 | **FAO WaPOR v3** | ET réelle et productivité de l'eau (raster) | API raster | — | ⏳ Non intégré (nécessite une chaîne raster) |
+| **Décret n° 2026-66** (SMAG) | Salaire minimum agricole garanti : 21,336 DT/jour au 1er janvier 2026 | Texte réglementaire | Officiel | ✅ Paramètre `costs.smag_tnd_day` |
+| **Prix des engrais** | Ammonitrate 720 DT/t (prix de détail fixé, campagne 2024-2025) ; DAP 690 DT/t (dernier prix public relevé, 2021, à actualiser) | Presse économique (décisions du ministère) | Officiel / Estimé | ✅ Paramètres `costs.*` |
+| **BPEH – Rapport national du secteur de l'eau 2020** | Coût moyen de l'eau d'irrigation 0,110 DT/m³ (cité par l'étude GIZ sur les bonnes pratiques économes en eau) | Rapport | Officiel | ✅ Paramètre `costs.network_water_tnd_m3` |
+| **IRESA – Recueil des fiches technico-économiques** (tomes I et II) | Charges et marges par culture et par région | Non accessible en ligne en texte | — | ⏳ À intégrer : remplacera les coefficients estimés du modèle de coûts |
 | **ANME / STEG** | Règles photovoltaïques et tarifs | Textes réglementaires | Paramètres ministère | ⚙️ Paramétrable (voir ci-dessous) |
 
 ## Import manuel (CSV)

@@ -1,8 +1,8 @@
-# AgroSphere AI
+# TuniNō
 
 **TuniNō — Two nations, one vision: sustainable agriculture**
 
-AgroSphere AI est une plateforme unique inspirée de **WAGRI** (Japon). Elle centralise et partage les données agricoles pour deux publics :
+TuniNō est une plateforme unique inspirée de **WAGRI** (Japon). Elle centralise et partage les données agricoles pour deux publics :
 
 - **Ministère de l'Agriculture (Tunisie)** : il suit le bilan national (besoins alimentaires, production, importations et exportations, réserves, eau et énergie). Il planifie la production par culture, gouvernorat et saison avec une marge de sécurité, simule des scénarios et valide les propositions.
 - **Agriculteurs (petites et grandes exploitations)** : à partir du terrain réel (dessin sur la carte ou plan 2D importé et reconnu par vision par ordinateur), **AgroBrain** produit un plan découpé en parcelles colorées. Ce plan comprend les cultures, les surfaces, la production, les besoins en eau et en énergie, les dates, le programme d'arrosage, le dimensionnement solaire et batterie, ainsi que les chambres froides et la contribution aux réserves.
@@ -78,8 +78,8 @@ En production, le backend refuse de démarrer avec un secret JWT par défaut. La
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest -q     # 67 tests : FAO-56, Saxton-Rawls, hydraulique, MILP, découpage, lecture de plans,
-                                                     # CP-SAT, solaire, froid, contre-saison (> 65 ha), climat, calendrier, tableaux A–F, API, rôles
+cd backend && .venv/Scripts/python -m pytest -q     # 71 tests : FAO-56, Saxton-Rawls, hydraulique, MILP, découpage, lecture de plans,
+                                                     # CP-SAT, solaire, froid, contre-saison (> 65 ha), coûts de production, climat, calendrier, tableaux A–F, API, rôles
 cd frontend && npm test                              # parité FR/derja, clés utilisées, écriture arabe
 cd frontend && npm run build                         # typecheck + build
 ```

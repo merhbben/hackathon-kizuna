@@ -1,6 +1,7 @@
 import p2ar from "./p2.ar";
 import plar from "./pl.ar";
 import cbar from "./cb.ar";
+import coar from "./co.ar";
 import type { Dict } from "./fr";
 
 /** Derja tunisienne écrite en arabe — mots simples, peu de termes techniques. */
@@ -32,7 +33,7 @@ const ar: Dict = {
   indicators: { irrigated_area_ha: "المساحات السقوية", water_allocation_mm3: "حصص الماء", dam_storage_mm3: "مخزون السدود", dam_capacity_mm3: "سعة السدود", population: "السكان في كل ولاية", yield_kg_ha: "المردود في الجهات", reserve_stock_kt: "المخزون الاحتياطي", cold_storage_capacity_t: "سعة التبريد" },
   tasks: { demand_per_capita: "الطلب على كل واحد", yield: "المردود" },
   errors: {
-    plan_not_understood: "الپلان ما تقراش (الحدود ولا السلّم موش موجودين).", invalid_corrections: "التصليحات موش صحيحة.", not_a_scene: "الملف هذا موش مخطّط AgroSphere.", scene_not_json: "الملف ما يتقراش.", scene_version_unsupported: "نسخة المخطّط موش مقبولة.", scene_boundary_invalid: "حدود المخطّط موش صحيحة.", scene_parcel_invalid: "قطعة موش صحيحة في الملف.", no_technical_plan: "ما فماش پلان تقني محطوط.",
+    plan_not_understood: "الپلان ما تقراش (الحدود ولا السلّم موش موجودين).", invalid_corrections: "التصليحات موش صحيحة.", not_a_scene: "الملف هذا موش مخطّط TuniNō.", scene_not_json: "الملف ما يتقراش.", scene_version_unsupported: "نسخة المخطّط موش مقبولة.", scene_boundary_invalid: "حدود المخطّط موش صحيحة.", scene_parcel_invalid: "قطعة موش صحيحة في الملف.", no_technical_plan: "ما فماش پلان تقني محطوط.",
     area_required: "اكتب المساحة الحقيقية متاع الأرض.", invalid_outline: "حدود الپلان موش صحيحة: صلّحها.",
     generic: "صار مشكل. عاود جرّب.", bad_credentials: "الإيمايل ولا كلمة السر غالطين.", too_many_attempts: "جرّبت برشا. استنّى ربع ساعة.", email_exists: "الإيمايل هذا مستعمل.",
     side_length_needs_plan_file: "طول الجنب يصلّح السلّم متاع پلان محطوط.", unknown_edge: "جنب موش معروف.", source_position_missing: "حطّ كل سوندا على الپلان.", checkFields: "شوية قيم موش مقبولة:", fieldMax: "«{{field}}»: {{input}} فوق الحدّ المسموح ({{max}}).", fieldMin: "«{{field}}»: القيمة لازم تكون أكثر من {{min}}.", fieldInvalid: "«{{field}}»: قيمة غالطة.", outside_tunisia: "الحدود المرسومة برّا تونس.", boundary_too_small: "الحدود صغيرة برشا (أقل من 100 م²).", invalid_polygon: "حدود غالطة: الجنوب ما لازمهمش يتقاطعو.", area_not_validated: "أكّد مساحة أرضك قبل.", no_boundary: "ارسم ولا حطّ حدود الأرض قبل.", no_suitable_crop: "ما لقيناش زريعة تصلح بالمعطيات هاذي.",
@@ -146,5 +147,6 @@ const ar: Dict = {
   p2: p2ar,
   pl: plar,
   cb: cbar,
+  costs: coar,
 };
 export default ar;

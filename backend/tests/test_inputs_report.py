@@ -152,6 +152,11 @@ def test_inputs_to_optimised_plan_and_tables():
                      for x in C)
     D = rep["energy"]
     assert D["pump_kwh_total"] > 0 and D["grid_tariff_tnd_kwh"] == 0.2 and D["cost_tnd"] is not None
+    # production cost computed automatically for every crop of the plan (nothing typed by the farmer)
+    S = plan["summary"]
+    assert S["cost_tnd"] is not None and S["cost_tnd"] > 0
+    assert set(S["costs"]) == {p["crop"] for p in plan["parcels"]}
+    assert all(b["total_tnd_ha"] > 0 and b["items"]["labour"]["quality"] == "official" for b in S["costs"].values())
     assert D["split"] and D["split"]["basis"] == "existing_pv"
     E = rep["results"]
     assert E["total_t"] == pytest.approx(sum(x["production_t"] for x in E["production"]), abs=0.05)

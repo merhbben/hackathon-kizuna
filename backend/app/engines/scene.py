@@ -228,7 +228,7 @@ def to_svg(scene: dict, colors: dict[str, str], names: dict[str, str], title: st
     out.append(f'<path d="M {ax:.1f} {pad * k * 0.3:.1f} l -8 22 l 8 -6 l 8 6 z" fill="#16201a"/>'
                f'<text x="{ax:.1f}" y="{pad * k * 0.3 + 36:.1f}" font-size="13" text-anchor="middle" font-weight="bold">N</text>')
     lx = vw * k + 16
-    out.append(f'<text x="{lx}" y="30" font-size="14" font-weight="bold" fill="#103a20">AgroSphere AI</text>')
+    out.append(f'<text x="{lx}" y="30" font-size="14" font-weight="bold" fill="#103a20">TuniNō</text>')
     yy = 56
     for crop, c in used.items():
         out.append(f'<rect x="{lx}" y="{yy - 11}" width="14" height="14" fill="{c}"/>'

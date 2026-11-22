@@ -36,7 +36,7 @@ export default function Layout() {
           <div className="flex items-center gap-2">
             <img src="/favicon.svg" alt="" className="h-8 w-8" />
             <div className="leading-tight">
-              <div className="text-sm font-bold text-brand-800">AgroSphere AI</div>
+              <div className="text-sm font-bold text-brand-800">TuniNō</div>
               <div className="text-[10px] text-ink-500">{user?.role === "ministry" ? t("layout.ministry") : t("layout.farmer")}</div>
             </div>
           </div>

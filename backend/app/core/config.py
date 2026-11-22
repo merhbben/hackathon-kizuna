@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="AGRO_", extra="ignore",
                                       protected_namespaces=("settings_",))
 
-    app_name: str = "AgroSphere AI"
+    app_name: str = "TuniNō"
     environment: str = "development"
     # SQLite is only for local development / tests. Production uses PostgreSQL + PostGIS.
     database_url: str = f"sqlite:///{(BASE_DIR / 'data' / 'agrosphere.db').as_posix()}"
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Optional PyTorch segmentation weights (see app/cv/segmentation.py)
     segmentation_weights: Path | None = None
     # Contact string sent to public APIs that ask for one (generic on purpose)
-    http_user_agent: str = "AgroSphereAI/1.0 (+open-source agricultural planning tool)"
+    http_user_agent: str = "TuniNo/1.0 (+open-source agricultural planning tool)"
 
     @property
     def cors_list(self) -> list[str]:

@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 settings = get_settings()
 
 app = FastAPI(title=settings.app_name, version="1.0.0",
-              description="AgroSphere AI — planification agricole nationale et plans de ferme optimisés (Tunisie)")
+              description="TuniNō — planification agricole nationale et plans de ferme optimisés (Tunisie)")
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_list, allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 

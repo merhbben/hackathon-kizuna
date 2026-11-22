@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
@@ -78,9 +78,10 @@ export default function Harvest() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={t("energy.pv")} value={num(plan.energy.kwp_needed, 1)} unit="kWc" tone="sun" hint={t("energy.panels", { n: plan.energy.panels ?? 0, wp: plan.energy.panel_wp ?? 550, area: num(plan.energy.pv_area_m2) })} />
         <Stat label={t("energy.battery")} value={num(plan.energy.battery_kwh_needed)} unit="kWh" tone="sun" />
-        <Stat label={t("plan.cost")} value={s.cost_tnd !== null ? num(s.cost_tnd) : "—"} unit="TND" hint={s.cost_tnd === null ? t("harvest.fillPrices") : undefined} />
+        <Stat label={t("plan.cost")} value={s.cost_tnd !== null ? num(s.cost_tnd) : "—"} unit="TND" hint={s.cost_tnd !== null ? t(s.cost_quality === "official" ? "costs.officialHint" : "costs.autoHint") : t("costs.recompute")} />
         <Stat label={t("plan.revenue")} value={s.revenue_tnd !== null ? num(s.revenue_tnd) : "—"} unit="TND" hint={s.revenue_tnd === null ? t("harvest.fillPrices") : undefined} />
       </div>
+      <CostsCard plan={plan} />
       <PricesForm farm={farm} crops={Object.keys(s.production_t)} onSaved={setFarm} />
     </div>
   );
@@ -91,25 +92,82 @@ function PricesForm({ farm, crops, onSaved }: { farm: any; crops: string[]; onSa
   const { crop } = useNames();
   const prefs = farm.preferences || {};
   const [prices, setPrices] = useState<Record<string, string>>(Object.fromEntries(crops.map((c) => [c, prefs.prices_tnd_kg?.[c] ?? ""])));
-  const [costs, setCosts] = useState<Record<string, string>>(Object.fromEntries(crops.map((c) => [c, prefs.costs_tnd_ha?.[c] ?? ""])));
   const [err, setErr] = useState<any>(null);
   const [ok, setOk] = useState(false);
   const save = async () => {
     setErr(null); setOk(false);
     const clean = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== "").map(([k, v]) => [k, Number(v)]));
-    try { onSaved(await api(`/api/farms/${farm.id}`, { method: "PATCH", json: { preferences: { ...prefs, prices_tnd_kg: clean(prices), costs_tnd_ha: clean(costs) } } })); setOk(true); }
+    try { onSaved(await api(`/api/farms/${farm.id}`, { method: "PATCH", json: { preferences: { ...prefs, prices_tnd_kg: clean(prices) } } })); setOk(true); }
     catch (e) { setErr(e); }
   };
   return (
-    <Card title={t("harvest.prices")} subtitle={t("harvest.pricesSub")}>
+    <Card title={t("costs.pricesTitle")} subtitle={t("costs.pricesSub")}>
       <div className="overflow-x-auto">
-        <table className="table min-w-[480px]"><thead><tr><th>{t("common.crop")}</th><th>{t("harvest.price")} (TND/kg)</th><th>{t("harvest.costHa")} (TND/ha)</th></tr></thead>
+        <table className="table min-w-[480px]"><thead><tr><th>{t("common.crop")}</th><th>{t("harvest.price")} (TND/kg)</th></tr></thead>
           <tbody>{crops.map((c) => <tr key={c}><td>{crop(c)}</td>
             <td><input className="input !py-1.5" type="number" step="0.01" min="0" value={prices[c]} onChange={(e) => setPrices({ ...prices, [c]: e.target.value })} /></td>
-            <td><input className="input !py-1.5" type="number" min="0" value={costs[c]} onChange={(e) => setCosts({ ...costs, [c]: e.target.value })} /></td></tr>)}</tbody></table>
+</tr>)}</tbody></table>
       </div>
       <div className="mt-3 flex items-center gap-3"><button className="btn-primary" onClick={save}>{t("common.save")}</button>{ok && <span className="text-sm text-brand-700">{t("harvest.savedRegen")}</span>}</div>
       <ErrorBox error={err} />
+    </Card>
+  );
+}
+
+const ITEMS = ["labour", "seed", "ammonitrate", "dap", "potash", "treatments", "mechanisation", "energy", "water", "drip"];
+
+/** Production cost computed automatically for each crop of the plan (engines/costs.py). */
+function CostsCard({ plan }: { plan: any }) {
+  const { t } = useTranslation();
+  const { crop, color } = useNames();
+  const [open, setOpen] = useState<string | null>(null);
+  const costs: Record<string, any> = plan.summary.costs || {};
+  const area: Record<string, number> = {};
+  for (const p of plan.parcels) area[p.crop] = (area[p.crop] || 0) + p.area_m2 / 1e4;
+  const codes = Object.keys(costs).filter((c) => area[c]);
+  if (!codes.length) return <Card title={t("costs.title")}><Note tone="sun">{t("costs.recompute")}</Note></Card>;
+  const q = (x: string) => <Badge tone={x === "official" ? "brand" : x === "measured" ? "water" : x === "missing" ? "sun" : "slate"}>{t(`costs.q_${x}`)}</Badge>;
+  const total = codes.reduce((a, c) => a + (costs[c].total_tnd_ha || 0) * area[c], 0);
+  return (
+    <Card title={t("costs.title")} subtitle={t("costs.sub")}>
+      <div className="overflow-x-auto">
+        <table className="table min-w-[720px]">
+          <thead><tr><th>{t("common.crop")}</th><th>{t("costs.perHa")}</th><th>{t("costs.area")}</th><th>{t("costs.total")}</th><th>{t("costs.main")}</th><th /></tr></thead>
+          <tbody>{codes.map((c) => {
+            const b = costs[c];
+            const items = Object.entries<any>(b.items || {}).filter(([, it]) => it.tnd != null).sort((x, y) => y[1].tnd - x[1].tnd);
+            return (<Fragment key={c}>
+              <tr className="cursor-pointer hover:bg-brand-50/50" onClick={() => setOpen(open === c ? null : c)}>
+                <td className="font-semibold"><span className="me-2 inline-block h-3 w-3 rounded-sm align-middle" style={{ background: color(c) }} />{crop(c)}</td>
+                <td className="tabular-nums font-semibold">{b.total_tnd_ha != null ? `${num(b.total_tnd_ha)} TND` : "—"} {q(b.quality)}</td>
+                <td className="tabular-nums">{num(area[c], 2)} ha</td>
+                <td className="tabular-nums">{b.total_tnd_ha != null ? `${num(b.total_tnd_ha * area[c])} TND` : "—"}</td>
+                <td className="text-xs text-ink-500">{items.slice(0, 3).map(([k, it]) => `${t(`costs.i_${k}`)} ${num((100 * it.tnd) / Math.max(1, b.total_tnd_ha))} %`).join(" · ")}</td>
+                <td className="text-xs text-brand-700">{open === c ? "▾" : "▸"} {t("costs.detail")}</td>
+              </tr>
+              {open === c && (
+                <tr><td colSpan={6} className="bg-brand-50/40">
+                  {b.basis === "ministry_reference" ? <p className="text-sm">{t("costs.ministryRef")}</p> : (
+                    <>
+                      <table className="table text-xs">
+                        <thead><tr><th>{t("costs.item")}</th><th>{t("costs.qty")}</th><th>{t("costs.unitPrice")}</th><th>TND/ha</th><th>{t("costs.quality")}</th></tr></thead>
+                        <tbody>{ITEMS.filter((k) => b.items[k]).map((k) => { const it = b.items[k]; return (
+                          <tr key={k}><td>{t(`costs.i_${k}`)}</td><td className="tabular-nums">{num(it.qty, it.qty < 10 ? 2 : 0)} {t(`costs.u_${it.unit}`)}</td>
+                            <td className="tabular-nums">{it.price != null ? `${num(it.price, it.price < 1 ? 3 : 2)} TND` : <span className="text-sun-600">{t("costs.priceMissing")}</span>}</td>
+                            <td className="tabular-nums font-semibold">{it.tnd != null ? num(it.tnd) : "—"}</td><td>{q(it.quality)}</td></tr>); })}</tbody>
+                      </table>
+                      <p className="mt-2 text-xs text-ink-500">{t("costs.basisLine", { y: num(b.yield_t_ha, 1), w: num(b.water_m3_ha), d: num(b.labour_days_ha), n: num(b.nutrients_kg_ha?.N), p: num(b.nutrients_kg_ha?.P2O5), k: num(b.nutrients_kg_ha?.K2O) })}</p>
+                      {b.missing?.includes("grid_tariff") && <p className="mt-1 text-xs text-sun-600">{t("costs.tariffMissing")}</p>}
+                    </>
+                  )}
+                </td></tr>
+              )}
+            </Fragment>);
+          })}</tbody>
+          <tfoot><tr className="font-bold"><td colSpan={3}>{t("p2.total")}</td><td>{num(total)} TND</td><td colSpan={2} /></tr></tfoot>
+        </table>
+      </div>
+      <p className="mt-2 text-xs text-ink-500">{t("costs.method")}</p>
     </Card>
   );
 }

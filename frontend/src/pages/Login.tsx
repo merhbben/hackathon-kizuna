@@ -23,7 +23,7 @@ export default function Login() {
   return (
     <div className="grid min-h-full lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-water-600 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="flex items-center gap-3"><img src="/favicon.svg" className="h-10 w-10" alt="" /><span className="text-xl font-bold">AgroSphere AI</span></div>
+        <div className="flex items-center gap-3"><img src="/favicon.svg" className="h-10 w-10" alt="" /><span className="text-xl font-bold">TuniNō</span></div>
         <div>
           <h1 className="text-4xl font-bold leading-tight">{t("login.hero")}</h1>
           <p className="mt-4 max-w-md text-brand-50/90">{t("login.heroText")}</p>
@@ -34,7 +34,7 @@ export default function Login() {
       <div className="flex flex-col p-6 sm:p-10">
         <div className="flex justify-end"><LanguageToggle /></div>
         <form onSubmit={submit} className="m-auto w-full max-w-sm space-y-4">
-          <div className="lg:hidden flex items-center gap-2"><img src="/favicon.svg" className="h-9 w-9" alt="" /><span className="text-lg font-bold text-brand-800">AgroSphere AI</span></div>
+          <div className="lg:hidden flex items-center gap-2"><img src="/favicon.svg" className="h-9 w-9" alt="" /><span className="text-lg font-bold text-brand-800">TuniNō</span></div>
           <h2 className="text-2xl font-bold">{mode === "login" ? t("login.title") : t("login.registerTitle")}</h2>
           {mode === "register" && (
             <>

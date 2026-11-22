@@ -1,7 +1,7 @@
 """Optional deep-learning segmentation of farm plans (PyTorch U-Net).
 
 Status: architecture + training/inference code are provided, but NO trained
-weights ship with AgroSphere AI because no labelled corpus of Tunisian farm
+weights ship with TuniNō because no labelled corpus of Tunisian farm
 plans is publicly available. Until `AGRO_SEGMENTATION_WEIGHTS` points to a
 trained checkpoint, the API reports `available=False` and the classical
 OpenCV pipeline (plan_reader.detect) is used.

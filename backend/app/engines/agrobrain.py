@@ -18,6 +18,7 @@ from app.connectors import climate as climate_conn
 from app.connectors import sources
 from app.connectors.base import ConnectorError
 from app.engines import cold_store, crop_calendar
+from app.engines import costs as costs_eng
 from app.engines import energy as energy_eng
 from app.engines import fao56, forecast, irrigation, national, optimizer, partition, policy, storage
 from app.engines.hydraulics import pumping_point
@@ -87,15 +88,45 @@ def _yield_for(db: Session, farm: Farm, code: str) -> tuple[float | None, str]:
     return m, ("estimated_national_average" if flagged else "official_national_average")
 
 
-def _price_cost(db: Session, farm: Farm, code: str) -> tuple[float | None, float | None]:
-    prefs = farm.preferences or {}
-    price = prefs.get("prices_tnd_kg", {}).get(code)
-    cost = prefs.get("costs_tnd_ha", {}).get(code)
+def _price(db: Session, farm: Farm, code: str) -> float | None:
+    price = (farm.preferences or {}).get("prices_tnd_kg", {}).get(code)
     if price is None:
         price = (policy.get(db, "economics.reference_prices_tnd_kg") or {}).get(code)
-    if cost is None:
-        cost = (policy.get(db, "economics.reference_costs_tnd_ha") or {}).get(code)
-    return price, cost
+    return price
+
+
+class _CostModel:
+    """Automatic production cost per ha for this farm (engines/costs.py)."""
+
+    def __init__(self, db: Session, farm: Farm, srcs, method: str):
+        self.prices = costs_eng.unit_prices(lambda k: policy.get(db, k))
+        self.qualities = {k: policy.quality(db, f"costs.{k}") for k in costs_eng.PRICE_KEYS}
+        self.official = policy.get(db, "economics.reference_costs_tnd_ha") or {}
+        prefs = farm.preferences or {}
+        self.tariff = prefs.get("grid_tariff_tnd_kwh")
+        if self.tariff is None:
+            self.tariff = policy.get(db, "energy.grid_tariff_tnd_kwh")
+        # specific pumping energy of the farm: rated pump power / flow (measured), else hydraulic head
+        ses, caps, net = [], [], 0.0
+        for s in srcs:
+            cap = s.flow_m3h or (s.daily_volume_m3 or 0) / 24 or 1.0
+            caps.append(cap)
+            if s.kind in ("dam_network", "canal"):
+                net += cap
+                continue
+            kw = _source_pump_kw(farm, s)
+            if kw and s.flow_m3h:
+                ses.append(kw / s.flow_m3h)
+            else:
+                head = (s.pumping_depth_m or 0) + EMITTER_PRESSURE_M.get(method, 10.0)
+                ses.append(9.81 * head / 3600 / _pump_efficiency(farm))
+        self.kwh_m3 = sum(ses) / len(ses) if ses else None
+        self.network_share = net / sum(caps) if caps else 0.0
+
+    def per_ha(self, code: str, yield_kg_ha: float, water_m3_ha: float, rainfed: bool = False) -> dict:
+        return costs_eng.crop_cost_ha(code, yield_kg_ha / 1000, water_m3_ha, self.kwh_m3, self.tariff,
+                                      self.network_share, self.prices, self.qualities, rainfed,
+                                      self.official.get(code))
 
 
 def _monthly_capacity(farm: Farm, year: int) -> tuple[dict[str, float], float | None]:
@@ -138,11 +169,15 @@ def _source_pump_kw(farm: Farm, src) -> float | None:
     return None
 
 
+PLAN_MODEL_VERSION = 4   # bump when AgroBrain changes what a plan contains (plans are then recomputed)
+
+
 def inputs_fingerprint(farm: Farm) -> str:
     """Hash of every farm input used by AgroBrain: a plan whose fingerprint differs is out of date."""
     import hashlib
     import json
     data = {
+        "model": PLAN_MODEL_VERSION,
         "b": farm.boundary_geojson, "x": farm.exclusions_geojson, "m": farm.irrigation_method, "s": farm.soil,
         "season": farm.season, "gov": farm.governorate_code, "lat": farm.latitude, "lon": farm.longitude,
         "budget": farm.budget_tnd, "existing": farm.existing_crops,
@@ -318,6 +353,7 @@ def generate_plan(db: Session, farm: Farm, locked: list[dict] | None = None, tod
 
     # --- crop options ----------------------------------------------------
     options, details, missing = [], {}, []
+    cost_model = _CostModel(db, farm, srcs, method)
     for code, s in suit.items():
         if not s.suitable and code not in locked_area:
             continue
@@ -331,11 +367,13 @@ def generate_plan(db: Session, farm: Farm, locked: list[dict] | None = None, tod
         wp = fao56.crop_water_plan(c, planting, clim, rainfed=rainfed)
         lr = leaching_requirement(water_ec, c, method)
         monthly = {m: v * 10 / eff / (1 - lr) for m, v in wp.monthly_net_mm.items()}
-        price, cost = _price_cost(db, farm, code)
+        price = _price(db, farm, code)
+        breakdown = cost_model.per_ha(code, y * s.relative_yield, sum(monthly.values()))
+        cost = breakdown["total_tnd_ha"]
         options.append(optimizer.CropOption(code, y, s.relative_yield, monthly, priorities.get(code, 0.3), price, cost,
                                             locked_area.get(code, 0.0)))
         details[code] = {"planting": planting, "water_plan": wp, "yield_quality": yq, "leaching": lr,
-                         "suitability": s.__dict__, "price": price, "cost": cost,
+                         "suitability": s.__dict__, "price": price, "cost": cost, "cost_breakdown": breakdown,
                          "planting_rule": planting_rule}
     if not options:
         raise PlanningError("no_suitable_crop", {"missing": missing})
@@ -383,12 +421,15 @@ def generate_plan(db: Session, farm: Farm, locked: list[dict] | None = None, tod
             ya_ym = 1 - c.ky * (1 - ratio)                     # FAO-33: 1 - Ya/Ym = Ky (1 - ETa/ETm)
             if ya_ym < RAINFED_MIN_RELATIVE_YIELD:
                 continue
-            price, cost = _price_cost(db, farm, code)
+            price = _price(db, farm, code)
+            breakdown = cost_model.per_ha(code, y * sres.relative_yield * ya_ym, 0.0, rainfed=True)
+            cost = breakdown["total_tnd_ha"]
             rainfed_opts.append(optimizer.CropOption(code, y, sres.relative_yield * ya_ym,
                                                      {m: 0.0 for m in wp.monthly_net_mm}, priorities.get(code, 0.3),
                                                      price, cost))
             details[code] = {"planting": planting, "water_plan": wp, "yield_quality": yq, "leaching": 0.0,
-                             "suitability": sres.__dict__, "price": price, "cost": cost, "planting_rule": planting_rule,
+                             "suitability": sres.__dict__, "price": price, "cost": cost,
+                             "cost_breakdown": breakdown, "planting_rule": planting_rule,
                              "rainfed": True, "rain_cover": round(ratio, 2), "ya_ym": round(ya_ym, 2)}
         if rainfed_opts:
             room = max(1, (7 if large else 4) - len(res.areas_ha))
@@ -489,7 +530,12 @@ def generate_plan(db: Session, farm: Farm, locked: list[dict] | None = None, tod
         totals["production_kg"][code] = totals["production_kg"].get(code, 0.0) + prod
         totals["water_m3"] += season_m3
         totals["energy_kwh"] += kwh
-        cost = a_ha * d["cost"] if d["cost"] is not None else None
+        cost = None
+        if d["cost"] is not None:
+            # model cost per ha, with the pumping energy of THIS parcel (its real pipe length / pump)
+            cost = a_ha * (d["cost"] - costs_eng.energy_part(d.get("cost_breakdown") or {}))
+            if cost_model.tariff is not None and (d.get("cost_breakdown") or {}).get("basis") != "ministry_reference":
+                cost += kwh * cost_model.tariff
         rev = prod * d["price"] if d["price"] is not None else None
         costs_known &= cost is not None
         revenue_known &= rev is not None
@@ -661,6 +707,9 @@ def generate_plan(db: Session, farm: Farm, locked: list[dict] | None = None, tod
         "production_t": {k: round(v, 2) for k, v in prod_t.items()},
         "water_m3": round(totals["water_m3"], 0), "energy_kwh": round(totals["energy_kwh"], 0),
         "cost_tnd": round(totals["cost_tnd"], 0) if costs_known else None,
+        "costs": {k: d["cost_breakdown"] for k, d in details.items() if k in all_areas and d.get("cost_breakdown")},
+        "cost_quality": "official" if all((details[k].get("cost_breakdown") or {}).get("quality") == "official"
+                                          for k in all_areas if k in details) else "estimated",
         "revenue_tnd": round(totals["revenue_tnd"], 0) if revenue_known else None,
         "water_capacity_m3": {m: round(v, 0) for m, v in cap.items() if m in res.water_use_m3},
         "water_use_m3": res.water_use_m3, "missing": missing, "sources": sources_used,

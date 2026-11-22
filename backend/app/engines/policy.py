@@ -48,11 +48,47 @@ DEFAULTS: dict[str, dict] = {
                                                              "(proposition, à valider)"},
     "economics.reference_prices_tnd_kg": {"value": {}, "source": "Prix de référence (ONAGRI / marché de gros)"},
     "economics.reference_costs_tnd_ha": {"value": {}, "source": "Coûts de production de référence (CRDA)"},
+    # unit prices of the automatic production-cost model (engines/costs.py); quality shown next to each cost
+    "costs.smag_tnd_day": {"value": 21.336, "quality": "official",
+                           "source": "Décret n° 2026-66 : SMAG 21,336 DT par jour au 1er janvier 2026 "
+                                     "(22,400 DT au 1er janvier 2027)"},
+    "costs.ammonitrate_tnd_t": {"value": 720.0, "quality": "official",
+                                "source": "Prix de détail de l'ammonitrate fixé pour la campagne 2024-2025"},
+    "costs.dap_tnd_t": {"value": 690.0, "quality": "estimated",
+                        "source": "Dernier prix public relevé du DAP (2021) — à actualiser (GCT / ministère)"},
+    "costs.sop_tnd_t": {"value": 1500.0, "quality": "estimated", "source": "Sulfate de potasse — estimation à valider"},
+    "costs.cereal_seed_tnd_kg": {"value": 1.4, "quality": "estimated",
+                                 "source": "Semence certifiée de céréales — estimation à valider"},
+    "costs.legume_seed_tnd_kg": {"value": 4.0, "quality": "estimated",
+                                 "source": "Semence de légumineuses — estimation à valider"},
+    "costs.potato_seed_tnd_kg": {"value": 3.5, "quality": "estimated",
+                                 "source": "Semence de pomme de terre : plus de 3 500 DT/t (FNPPT, 2019)"},
+    "costs.vegetable_seed_tnd_kg": {"value": 300.0, "quality": "estimated",
+                                    "source": "Semence hybride (oignon, carotte) — estimation à valider"},
+    "costs.seedling_tnd_plant": {"value": 0.12, "quality": "estimated",
+                                 "source": "Plant de pépinière (tomate, piment, cucurbitacées) — estimation"},
+    "costs.offshoot_tnd_plant": {"value": 0.30, "quality": "estimated", "source": "Œilleton d'artichaut — estimation"},
+    "costs.tractor_tnd_h": {"value": 45.0, "quality": "estimated",
+                            "source": "Heure de tracteur ou de prestation — estimation à valider"},
+    "costs.treatment_tnd_ha": {"value": 70.0, "quality": "estimated",
+                               "source": "Un traitement phytosanitaire par ha (produit + passage) — estimation"},
+    "costs.network_water_tnd_m3": {"value": 0.110, "quality": "official",
+                                   "source": "Coût moyen de l'eau d'irrigation : 0,110 DT/m³ (BPEH, Rapport national "
+                                             "du secteur de l'eau 2020)"},
+    "costs.drip_tnd_ha_year": {"value": 400.0, "quality": "estimated",
+                               "source": "Entretien et renouvellement annuel du goutte-à-goutte — estimation"},
     "alerts.rain_anomaly_warning": {"value": 0.75, "source": "Ratio pluie 90 j / normale"},
     "alerts.rain_anomaly_critical": {"value": 0.50, "source": "Ratio pluie 90 j / normale"},
     "alerts.dam_fill_warning_pct": {"value": 50.0, "source": "Taux de remplissage des barrages"},
     "alerts.dam_fill_critical_pct": {"value": 30.0, "source": "Taux de remplissage des barrages"},
 }
+
+
+def quality(db: Session, key: str) -> str:
+    """'official' when the ministry set the value, else the quality of the default (estimated / official)."""
+    if db.get(PolicySetting, key) is not None:
+        return "official"
+    return DEFAULTS.get(key, {}).get("quality", "estimated")
 
 
 def get(db: Session, key: str):

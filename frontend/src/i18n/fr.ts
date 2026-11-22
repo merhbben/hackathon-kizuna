@@ -1,6 +1,7 @@
 import p2fr from "./p2.fr";
 import plfr from "./pl.fr";
 import cbfr from "./cb.fr";
+import cofr from "./co.fr";
 const fr = {
   common: { add: "Ajouter", approve: "Valider", area: "Surface", cancel: "Annuler", create: "Créer", crop: "Culture", delete: "Supprimer", loading: "Chargement…", missing: "Manquant", noData: "Pas de donnée", production: "Production", reject: "Refuser", save: "Enregistrer", source: "Source", validate: "Valider officiellement", water: "Eau", year: "Année" },
   nav: {
@@ -29,7 +30,7 @@ const fr = {
   indicators: { irrigated_area_ha: "Surfaces irriguées", water_allocation_mm3: "Allocations d'eau", dam_storage_mm3: "Réserves des barrages", dam_capacity_mm3: "Capacité des barrages", population: "Population par gouvernorat", yield_kg_ha: "Rendements régionaux", reserve_stock_kt: "Stocks de réserve", cold_storage_capacity_t: "Capacité frigorifique" },
   tasks: { demand_per_capita: "Demande / habitant", yield: "Rendement" },
   errors: {
-    plan_not_understood: "Le plan n'a pas pu être lu (contour ou échelle introuvable).", invalid_corrections: "Corrections invalides.", not_a_scene: "Ce fichier n'est pas un plan AgroSphere.", scene_not_json: "Fichier illisible.", scene_version_unsupported: "Version de plan non prise en charge.", scene_boundary_invalid: "Contour du plan invalide.", scene_parcel_invalid: "Parcelle invalide dans le fichier.", no_technical_plan: "Aucun plan technique importé.",
+    plan_not_understood: "Le plan n'a pas pu être lu (contour ou échelle introuvable).", invalid_corrections: "Corrections invalides.", not_a_scene: "Ce fichier n'est pas un plan TuniNō.", scene_not_json: "Fichier illisible.", scene_version_unsupported: "Version de plan non prise en charge.", scene_boundary_invalid: "Contour du plan invalide.", scene_parcel_invalid: "Parcelle invalide dans le fichier.", no_technical_plan: "Aucun plan technique importé.",
     area_required: "Indiquez la surface réelle du terrain.", invalid_outline: "Le contour du plan est invalide : corrigez-le.",
     generic: "Une erreur est survenue. Réessayez.", bad_credentials: "E-mail ou mot de passe incorrect.", too_many_attempts: "Trop d'essais. Attendez 15 minutes.", email_exists: "Cet e-mail est déjà utilisé.",
     side_length_needs_plan_file: "La longueur d’un côté sert à corriger l’échelle d’un plan importé.", unknown_edge: "Côté inconnu.", source_position_missing: "Placez chaque forage sur le plan.", checkFields: "Certaines valeurs ne sont pas acceptées :", fieldMax: "« {{field}} » : {{input}} dépasse le maximum autorisé ({{max}}).", fieldMin: "« {{field}} » : la valeur doit être supérieure à {{min}}.", fieldInvalid: "« {{field}} » : valeur invalide.", outside_tunisia: "Le contour dessiné est hors de Tunisie.", boundary_too_small: "Contour trop petit (moins de 100 m²).", invalid_polygon: "Contour invalide : les côtés ne doivent pas se croiser.", area_not_validated: "Confirmez d'abord la surface de votre terrain.", no_boundary: "Dessinez ou importez d'abord le contour du terrain.", no_suitable_crop: "Aucune culture adaptée trouvée avec ces données.",
@@ -143,6 +144,7 @@ const fr = {
   p2: p2fr,
   pl: plfr,
   cb: cbfr,
+  costs: cofr,
 };
 export default fr;
 export type Dict = typeof fr;
