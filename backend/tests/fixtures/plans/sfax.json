@@ -1,0 +1,109 @@
+{
+ "source": "Atlas_4_plans_agricoles_test.pdf (plans synthétiques fournis par l'utilisateur, NON OFFICIELS)",
+ "printed": {
+  "governorate": "TN-61",
+  "area_m2": 141525,
+  "water_m3_day": 92.0,
+  "pump_kw": 16.0,
+  "solar_kwc": 24.0,
+  "battery_kwh": 45.0
+ },
+ "expected_zones": {
+  "solar": 1,
+  "cold_storage": 1,
+  "reservoir": 1
+ },
+ "expected_lines": {
+  "pipe": 1,
+  "path": 1
+ },
+ "vertex_labels": [
+  "B1",
+  "B2",
+  "B3",
+  "B4",
+  "B5",
+  "B6"
+ ],
+ "vector_reference": {
+  "note": "géométrie lue dans les primitives vectorielles du PDF ; repère local en mètres, origine = coin bas-gauche de l'emprise du contour",
+  "boundary_m": [
+   [
+    15.0,
+    0.0
+   ],
+   [
+    455.0,
+    0.0
+   ],
+   [
+    475.0,
+    150.0
+   ],
+   [
+    415.0,
+    310.0
+   ],
+   [
+    110.0,
+    340.0
+   ],
+   [
+    0.0,
+    240.0
+   ]
+  ],
+  "edges": [
+   {
+    "from": "B1",
+    "to": "B2",
+    "length_m": 440.0
+   },
+   {
+    "from": "B2",
+    "to": "B3",
+    "length_m": 151.33
+   },
+   {
+    "from": "B3",
+    "to": "B4",
+    "length_m": 170.88
+   },
+   {
+    "from": "B4",
+    "to": "B5",
+    "length_m": 306.47
+   },
+   {
+    "from": "B5",
+    "to": "B6",
+    "length_m": 148.66
+   },
+   {
+    "from": "B6",
+    "to": "B1",
+    "length_m": 240.47
+   }
+  ],
+  "water_points": [
+   {
+    "name": "F1",
+    "kind": "borehole",
+    "x_m": 57.0,
+    "y_m": 253.0
+   },
+   {
+    "name": "F2",
+    "kind": "borehole",
+    "x_m": 379.0,
+    "y_m": 81.0
+   }
+  ]
+ },
+ "tolerances": {
+  "area_pct_vector": 0.5,
+  "area_pct_raster": 2.0,
+  "water_point_m": 5.0,
+  "iou_raster": 0.97
+ }
+}

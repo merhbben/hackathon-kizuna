@@ -34,11 +34,12 @@ export default function App() {
     <FarmProvider>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/farm" element={<Terrain />} />
+          <Route path="/farm" element={<Navigate to="/farm/plan" replace />} />
+          <Route path="/farm/terrain" element={<Terrain />} />
           <Route path="/farm/plan" element={<MyPlan />} />
           <Route path="/farm/water" element={<WaterEnergy />} />
           <Route path="/farm/harvest" element={<Harvest />} />
-          <Route path="*" element={<Navigate to="/farm" replace />} />
+          <Route path="*" element={<Navigate to="/farm/plan" replace />} />
         </Route>
       </Routes>
     </FarmProvider>

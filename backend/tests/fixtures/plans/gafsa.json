@@ -1,0 +1,113 @@
+{
+ "source": "Atlas_4_plans_agricoles_test.pdf (plans synthétiques fournis par l'utilisateur, NON OFFICIELS)",
+ "printed": {
+  "governorate": "TN-71",
+  "area_m2": 42650,
+  "water_m3_day": 8.0,
+  "pump_kw": 2.2,
+  "solar_kwc": 2.0,
+  "battery_kwh": 5.0
+ },
+ "expected_zones": {
+  "exclusion": 1,
+  "reservoir": 1,
+  "solar": 1
+ },
+ "expected_lines": {
+  "slope": 1,
+  "path": 1
+ },
+ "vertex_labels": [
+  "B1",
+  "B2",
+  "B3",
+  "B4",
+  "B5",
+  "B6",
+  "B7"
+ ],
+ "vector_reference": {
+  "note": "géométrie lue dans les primitives vectorielles du PDF ; repère local en mètres, origine = coin bas-gauche de l'emprise du contour",
+  "boundary_m": [
+   [
+    30.0,
+    0.0
+   ],
+   [
+    210.0,
+    0.0
+   ],
+   [
+    235.0,
+    90.0
+   ],
+   [
+    180.0,
+    155.0
+   ],
+   [
+    155.0,
+    245.0
+   ],
+   [
+    50.0,
+    230.0
+   ],
+   [
+    0.0,
+    135.0
+   ]
+  ],
+  "edges": [
+   {
+    "from": "B1",
+    "to": "B2",
+    "length_m": 180.0
+   },
+   {
+    "from": "B2",
+    "to": "B3",
+    "length_m": 93.41
+   },
+   {
+    "from": "B3",
+    "to": "B4",
+    "length_m": 85.15
+   },
+   {
+    "from": "B4",
+    "to": "B5",
+    "length_m": 93.41
+   },
+   {
+    "from": "B5",
+    "to": "B6",
+    "length_m": 106.07
+   },
+   {
+    "from": "B6",
+    "to": "B7",
+    "length_m": 107.35
+   },
+   {
+    "from": "B7",
+    "to": "B1",
+    "length_m": 138.29
+   }
+  ],
+  "water_points": [
+   {
+    "name": "POINT EAU AUTORISE",
+    "kind": "network",
+    "x_m": 199.0,
+    "y_m": 19.0
+   }
+  ]
+ },
+ "tolerances": {
+  "area_pct_vector": 0.5,
+  "area_pct_raster": 2.0,
+  "water_point_m": 5.0,
+  "iou_raster": 0.97
+ }
+}

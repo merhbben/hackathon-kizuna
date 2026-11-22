@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: { port: 5173, proxy: { "/api": { target: process.env.VITE_API_PROXY || "http://127.0.0.1:8000", changeOrigin: true } } },
-  build: { chunkSizeWarningLimit: 1200 },
+  build: { chunkSizeWarningLimit: 1600 },
+  optimizeDeps: { include: ["phaser", "leaflet", "react-leaflet", "recharts", "@geoman-io/leaflet-geoman-free"] },
   test: { environment: "node" },
 } as any);

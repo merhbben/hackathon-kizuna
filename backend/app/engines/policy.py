@@ -38,6 +38,14 @@ DEFAULTS: dict[str, dict] = {
     "energy.grid_tariff_tnd_kwh": {"value": None, "source": "Tarif STEG applicable — à renseigner"},
     "energy.export_tariff_tnd_kwh": {"value": None, "source": "Tarif de rachat STEG (décision ministérielle)"},
     "storage.cold_room_cost_tnd_m3": {"value": None, "source": "Coût chambre froide — à renseigner"},
+    "storage.cold_building_min_ha": {"value": 65.0, "source": "Au-delà de cette surface, un bâtiment frigorifique "
+                                                              "est obligatoire (règle du projet, à valider)"},
+    "storage.offseason_min_weeks": {"value": 8, "source": "Durée de conservation minimale pour décaler une "
+                                                          "récolte vers la contre-saison (USDA HB66)"},
+    "storage.cold_backup_hours": {"value": 6.0, "source": "Heures de secours batterie du bâtiment frigorifique en "
+                                                         "cas de coupure (chambre fermée ; proposition)"},
+    "storage.offseason_share_pct": {"value": 50.0, "source": "Part de la récolte stockée pour la contre-saison "
+                                                             "(proposition, à valider)"},
     "economics.reference_prices_tnd_kg": {"value": {}, "source": "Prix de référence (ONAGRI / marché de gros)"},
     "economics.reference_costs_tnd_ha": {"value": {}, "source": "Coûts de production de référence (CRDA)"},
     "alerts.rain_anomaly_warning": {"value": 0.75, "source": "Ratio pluie 90 j / normale"},

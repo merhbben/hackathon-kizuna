@@ -31,8 +31,8 @@ class ParcelIrrigation:
     area_m2: float
     planting: date
     source_index: int
-    flow_m3h: float
-    pump_kw: float
+    flow_m3h: float | None       # None: not given on the plan -> durations cannot be computed
+    pump_kw: float | None
     specific_energy_kwh_m3: float
     taw_mm_per_m: float
     leaching: float = 0.0
@@ -69,10 +69,11 @@ def daily_requirements(p: ParcelIrrigation, method: str, days: list[dict]) -> li
             continue
         gross_mm = net / eff / (1 - p.leaching)
         vol = gross_mm * p.area_m2 / 1000.0
-        hours = vol / p.flow_m3h if p.flow_m3h > 0 else 0.0
+        hours = vol / p.flow_m3h if p.flow_m3h else None
         out.append({"date": d["date"], "parcel": p.label, "crop": p.crop, "stage": stage_on_day(c, k),
                     "kc": round(kc, 2), "etc_mm": round(etc, 2), "net_mm": round(net, 2),
-                    "gross_mm": round(gross_mm, 2), "volume_m3": round(vol, 2), "duration_min": math.ceil(hours * 60),
+                    "gross_mm": round(gross_mm, 2), "volume_m3": round(vol, 2),
+                    "duration_min": math.ceil(hours * 60) if hours is not None else None,
                     "source_index": p.source_index, "energy_kwh": round(vol * p.specific_energy_kwh_m3, 2),
                     "pump_kw": p.pump_kw})
     return out
@@ -159,7 +160,10 @@ def plan_week(parcels: list[ParcelIrrigation], method: str, days: list[dict], pv
     for d in sorted(by_day):
         month = int(d[5:7]) - 1
         pv = pv_kw_by_month_hour[month] if pv_kw_by_month_hour else None
-        schedule.extend(timetable_day(by_day[d], pv, method))
+        timed = [e for e in by_day[d] if e["duration_min"] is not None and e["pump_kw"] is not None]
+        untimed = [{**e, "start": None, "end": None, "duration_unknown": True} for e in by_day[d]
+                   if e["duration_min"] is None or e["pump_kw"] is None]
+        schedule.extend(timetable_day(timed, pv, method) + untimed)
     return {"events": schedule,
             "total_m3": round(sum(e["volume_m3"] for e in schedule), 1),
             "total_kwh": round(sum(e["energy_kwh"] for e in schedule), 1),

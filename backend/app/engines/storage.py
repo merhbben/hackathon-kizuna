@@ -19,13 +19,15 @@ U_PANEL = {100: 0.22, 120: 0.18, 150: 0.15}  # W/m2K for PIR panels of given thi
 
 
 def cold_room(crop_code: str, mass_t: float, ambient_tmax_month: list[float], daily_intake_pct: float = 10.0,
-              height_m: float = 4.5, pull_down_h: float = 24.0, cost_tnd_m3: float | None = None) -> dict:
+              height_m: float = 4.5, pull_down_h: float = 24.0, cost_tnd_m3: float | None = None,
+              volume_m3: float | None = None) -> dict:
+    """``volume_m3`` forces the room volume (room shared with a larger crop); default = mass / density."""
     c = crop(crop_code)
     st = c.storage
     if not st.cold or st.temp_c is None or not st.density_kg_m3:
         return {"crop": crop_code, "required": False, "reason": "dry_storage", "note": st.note}
     t_in = st.temp_c
-    volume = mass_t * 1000 / st.density_kg_m3
+    volume = max(volume_m3 or 0.0, mass_t * 1000 / st.density_kg_m3)
     floor = volume / height_m
     side = math.sqrt(floor)
     envelope = 2 * (side * side + 2 * side * height_m)

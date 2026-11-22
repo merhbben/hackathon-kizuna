@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import auth, farms, ministry, reference
+from app.api import auth, farms, inputs, ministry, plan_import, reference
 from app.core.config import get_settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -31,7 +31,7 @@ async def unhandled(request: Request, exc: Exception):  # never leak stack trace
     return JSONResponse({"detail": "internal_error"}, status_code=500)
 
 
-for r in (auth.router, farms.router, ministry.router, reference.router):
+for r in (auth.router, plan_import.router, inputs.router, farms.router, ministry.router, reference.router):
     app.include_router(r)
 
 

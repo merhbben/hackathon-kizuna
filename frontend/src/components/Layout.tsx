@@ -28,7 +28,7 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const nav = user?.role === "ministry"
     ? [{ to: "/ministry", id: "home" }, { to: "/ministry/plan", id: "plan" }, { to: "/ministry/reserves", id: "reserves" }, { to: "/ministry/alerts", id: "alerts" }]
-    : [{ to: "/farm", id: "terrain" }, { to: "/farm/plan", id: "myplan" }, { to: "/farm/water", id: "water" }, { to: "/farm/harvest", id: "harvest" }];
+    : [{ to: "/farm/plan", id: "myplan" }, { to: "/farm/water", id: "water" }, { to: "/farm/harvest", id: "harvest" }];
   return (
     <div className="min-h-full pb-20 md:pb-0">
       <header className="sticky top-0 z-30 border-b border-brand-100 bg-white/90 backdrop-blur">
@@ -48,6 +48,7 @@ export default function Layout() {
             ))}
           </nav>
           <div className="ms-auto flex items-center gap-2">
+            {user?.role === "farmer" && <NavLink to="/farm/terrain" className="hidden text-xs font-semibold text-ink-500 hover:text-brand-700 sm:inline">⚙ {t("nav.terrainData")}</NavLink>}
             <LanguageToggle compact />
             <button onClick={logout} className="btn-ghost !px-3 !py-2" title={user?.email}>{t("layout.logout")}</button>
           </div>
@@ -56,7 +57,7 @@ export default function Layout() {
       <main className="mx-auto max-w-7xl px-4 py-5">
         <Outlet />
       </main>
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-brand-100 bg-white md:hidden">
+      <nav className={`fixed inset-x-0 bottom-0 z-30 grid ${nav.length === 3 ? "grid-cols-3" : "grid-cols-4"} border-t border-brand-100 bg-white md:hidden`}>
         {nav.map((n) => (
           <NavLink key={n.to} to={n.to} end className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 text-[11px] font-semibold ${isActive ? "text-brand-700" : "text-ink-500"}`}>
             <span aria-hidden className="text-lg">{ICONS[n.id]}</span>{t(`nav.${n.id}`)}

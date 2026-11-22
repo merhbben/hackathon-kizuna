@@ -52,6 +52,13 @@ export default function Harvest() {
           )}
         </Card>
         <Card title={t("harvest.coldRooms")} subtitle={t("harvest.coldRoomsSub")}>
+          {farm.equipment.filter((e: any) => e.kind === "cold_room").map((e: any) => (
+            <div key={e.id} className="mb-3 rounded-xl border border-water-300/50 p-3 text-sm">
+              <div className="flex items-center justify-between"><b>{t("harvest.existingRoom")}</b>{e.specs.source === "plan" && <Badge tone="water">{t("harvest.fromPlan")}</Badge>}</div>
+              <p className="mt-1">{e.specs.floor_m2 ? `${num(e.specs.floor_m2)} m² ${t("harvest.floorArea")}` : ""} {e.specs.label ? `· ${e.specs.label}` : ""}</p>
+              <p className="mt-1 text-xs text-ink-500">{t("harvest.roomVolumeUnknown")}</p>
+            </div>
+          ))}
           {!rooms.length ? <Note>{t("harvest.noColdRoom")}</Note> : rooms.map((r: any) => (
             <div key={r.crop} className="mb-3 rounded-xl bg-water-50 p-3 text-sm">
               <div className="flex items-center justify-between"><b>{crop(r.crop)}</b><Badge tone="water">{r.temperature_c} °C · {r.humidity_pct} %</Badge></div>

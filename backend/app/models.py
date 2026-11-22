@@ -88,7 +88,9 @@ class WaterSource(Base):
     name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
-    flow_m3h: Mapped[float] = mapped_column(Float)
+    flow_m3h: Mapped[float | None] = mapped_column(Float, nullable=True)       # None = not on the plan
+    daily_volume_m3: Mapped[float | None] = mapped_column(Float, nullable=True)  # declared m3/day (plan)
+    data_source: Mapped[str] = mapped_column(String(20), default="farmer")      # farmer | plan | measured
     max_hours_per_day: Mapped[float] = mapped_column(Float, default=12.0)
     annual_quota_m3: Mapped[float | None] = mapped_column(Float, nullable=True)
     pumping_depth_m: Mapped[float] = mapped_column(Float, default=0.0)   # dynamic water level

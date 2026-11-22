@@ -36,6 +36,7 @@ export default function WaterEnergy() {
           <span className="ms-auto font-semibold">{num(w.total_m3)} m³ · {num(w.total_kwh)} kWh</span>
           {w.conflicts > 0 && <Badge tone="danger">{t("water.conflicts", { n: w.conflicts })}</Badge>}
         </div>
+        {w.events.some((e: any) => e.duration_unknown) && <div className="mb-3"><Note tone="sun">{t("water.flowUnknown")}</Note></div>}
         {!w.events.length ? <Empty icon="🌱" title={t("water.nothing")}>{t("water.nothingText")}</Empty> : (
           <div className="space-y-4">
             {Object.entries(byDay).map(([d, evs]) => (
@@ -45,7 +46,7 @@ export default function WaterEnergy() {
                   <table className="table min-w-[560px]"><thead><tr><th>{t("water.time")}</th><th>{t("water.parcel")}</th><th>{t("water.duration")}</th><th>{t("water.volume")}</th><th>{t("water.energy")}</th></tr></thead>
                     <tbody>{evs.map((ev, i) => (
                       <tr key={i}><td className="font-semibold tabular-nums">{ev.start ?? "—"} → {ev.end ?? "—"} {ev.solar_share !== undefined && ev.solar_share >= 0.99 && <span title={t("water.solar")}>☀️</span>}</td>
-                        <td>{ev.parcel} · {crop(ev.crop)}</td><td className="tabular-nums">{ev.duration_min} min</td><td className="tabular-nums">{num(ev.volume_m3, 1)} m³</td><td className="tabular-nums">{num(ev.energy_kwh, 1)} kWh</td></tr>))}</tbody></table>
+                        <td>{ev.parcel} · {crop(ev.crop)}</td><td className="tabular-nums">{ev.duration_min != null ? `${ev.duration_min} min` : "—"}</td><td className="tabular-nums">{num(ev.volume_m3, 1)} m³</td><td className="tabular-nums">{num(ev.energy_kwh, 1)} kWh</td></tr>))}</tbody></table>
                 </div>
               </div>
             ))}
@@ -67,7 +68,7 @@ export default function WaterEnergy() {
           <ul className="space-y-2 text-sm">
             {plan.parcels.slice(0, 8).map((p: any) => p.metrics.pumping && (
               <li key={p.id} className="flex justify-between gap-2 border-b border-brand-50 pb-1.5"><span>{p.label} · {crop(p.crop)}</span>
-                <span className="tabular-nums text-ink-700">{num(p.metrics.pumping.power_kw, 1)} kW · {num(p.metrics.pumping.total_head_m)} m · {num(p.metrics.specific_energy_kwh_m3, 2)} kWh/m³</span></li>))}
+                <span className="tabular-nums text-ink-700">{p.metrics.pumping.flow_unknown ? `≥ ${num(p.metrics.specific_energy_kwh_m3, 2)} kWh/m³ (${t("water.minimum")})` : `${num(p.metrics.pumping.power_kw, 1)} kW · ${num(p.metrics.pumping.total_head_m)} m · ${num(p.metrics.specific_energy_kwh_m3, 2)} kWh/m³`}</span></li>))}
           </ul>
           {e.pump_rated_kw && <p className="mt-2 text-xs text-ink-500">{t("water.installedPump")} : {num(e.pump_rated_kw, 1)} kW</p>}
         </Card>

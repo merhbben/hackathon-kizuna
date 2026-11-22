@@ -13,6 +13,24 @@ L'interface est bilingue, **Français / تونسي** (derja en écriture arabe, 
 
 ---
 
+## Mon plan agricole : terrain → plan optimisé
+
+L'agriculteur donne seulement son terrain : il importe un plan (PNG, JPG, PDF ou SVG) ou le dessine sur la carte. Il ajoute sa position, ses forages (débit, profondeur, pompe) et ses équipements énergétiques. Il ne saisit ni la météo ni les besoins en eau.
+
+AgroBrain récupère automatiquement le climat du lieu (NASA POWER, ERA5/ERA5-Land, Open-Meteo) et le sol (SoilGrids). Il renvoie **le même terrain** découpé en parcelles A, B, C… : cultures optimisées par OR-Tools, découpage Shapely, irrigation FAO-56 planifiée par CP-SAT.
+
+Sur une seule page, sous les deux panneaux « Entrée du modèle » et « Plan optimisé », s'affichent :
+- la répartition des cultures ;
+- le programme d'irrigation ;
+- le calendrier cultural ;
+- l'énergie ;
+- les récoltes et le stockage ;
+- au-delà de 65 ha, le **bâtiment frigorifique de contre-saison** : une ou deux cultures fraîches gardées jusqu'aux mois où le pays en manque, avec son installation solaire dédiée (scénarios raccordé / autonome simulés heure par heure).
+
+Une culture = une zone (A, B…) avec une seule étiquette ; ses secteurs d'irrigation (A1, A2…) se déplient dans les tableaux.
+
+Statut détaillé : [docs/STATUS.md](docs/STATUS.md). Évaluation de la lecture des plans : [docs/EVALUATION.md](docs/EVALUATION.md).
+
 ## Démarrage rapide (développement local, Windows / Linux / macOS)
 
 Prérequis : Python 3.10 ou plus, Node 20 ou plus. En développement, la base est SQLite ; en production, PostgreSQL/PostGIS via Docker.
@@ -60,8 +78,8 @@ En production, le backend refuse de démarrer avec un secret JWT par défaut. La
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest -q     # 28 tests : FAO-56, Saxton-Rawls, hydraulique, MILP, découpage,
-                                                     # CP-SAT, solaire, chambre froide, vision, prévision, API, rôles
+cd backend && .venv/Scripts/python -m pytest -q     # 67 tests : FAO-56, Saxton-Rawls, hydraulique, MILP, découpage, lecture de plans,
+                                                     # CP-SAT, solaire, froid, contre-saison (> 65 ha), climat, calendrier, tableaux A–F, API, rôles
 cd frontend && npm test                              # parité FR/derja, clés utilisées, écriture arabe
 cd frontend && npm run build                         # typecheck + build
 ```
@@ -73,7 +91,7 @@ Les tests n'utilisent pas le réseau. Les connecteurs sont remplacés par des fi
 ```
 backend/
   app/api/          auth, farms (agriculteur), ministry, reference
-  app/connectors/   World Bank, FAOSTAT, NASA POWER, Open-Meteo, PVGIS, SoilGrids, Sentinel-2 STAC
+  app/connectors/   World Bank, FAOSTAT, NASA POWER, ERA5 / Open-Meteo (climate.py), PVGIS, SoilGrids, Sentinel-2 STAC
   app/cv/           plan_reader (OpenCV, PDF, GeoPandas, géoréférencement), segmentation (U-Net PyTorch optionnel)
   app/engines/      fao56, suitability, forecast, optimizer (MILP), partition (Shapely), hydraulics,
                     irrigation (CP-SAT), energy, storage, national (LP), policy, agrobrain (orchestrateur)
@@ -82,7 +100,7 @@ backend/
   tests/
 frontend/
   src/pages/ministry   Accueil national · Planifier les cultures · Réserves et énergie · Alertes et gestion
-  src/pages/farmer     Mon terrain · Mon plan agricole · Eau et énergie · Récoltes et stockage
+  src/pages/farmer     Mon plan agricole (entrée → plan optimisé → tableaux A–F) · Eau et énergie · Récoltes et stockage · Données du terrain
   src/i18n             fr.ts, ar.ts (derja)
 docs/                  ARCHITECTURE.md · DATA_SOURCES.md · STATUS.md
 ```

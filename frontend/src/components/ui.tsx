@@ -70,9 +70,41 @@ export function Loader({ label }: { label?: string }) {
   );
 }
 
+const FIELD_LABEL: Record<string, string> = {
+  grid_tariff_tnd_kwh: "p2.tariffIn", flow_m3h: "p2.flow", depth_m: "p2.depth", pump_kw: "p2.pumpPower", daily_volume_m3: "p2.dailyVolume",
+  annual_quota_m3: "p2.quota", pv_kwc: "p2.pvExisting", battery_kwh: "p2.batteryExisting", latitude: "imp.lat", longitude: "imp.lon",
+  edge_length_m: "p2.sideLength", volume_m3: "p2.coldRoom", floor_m2: "p2.coldRoom", salinity_ds_m: "p2.salinity",
+};
+
+/** Readable messages for FastAPI/pydantic validation errors (detail = list of {type, loc, ctx, input}). */
+function ValidationList({ items }: { items: any[] }) {
+  const { t } = useTranslation();
+  return (
+    <ul className="list-disc space-y-0.5 ps-4">
+      {items.map((e, i) => {
+        const name = [...(e.loc || [])].reverse().find((x: any) => typeof x === "string" && x !== "body") || "";
+        const src = (e.loc || []).find((x: any) => typeof x === "number");
+        const field = t(FIELD_LABEL[name] || "", { defaultValue: name }) + (src !== undefined ? ` (F${src + 1})` : "");
+        const c = e.ctx || {};
+        const kind = String(e.type || "");
+        const key = kind.startsWith("less_than") ? "errors.fieldMax" : kind.startsWith("greater_than") ? "errors.fieldMin" : "errors.fieldInvalid";
+        return <li key={i}>{t(key, { field, input: e.input, max: c.le ?? c.lt, min: c.ge ?? c.gt })}</li>;
+      })}
+    </ul>
+  );
+}
+
 export function ErrorBox({ error }: { error: any }) {
   const { t } = useTranslation();
   if (!error) return null;
+  if (Array.isArray(error?.detail)) {
+    return (
+      <div className="rounded-xl border border-danger-500/30 bg-danger-50 p-3 text-sm text-danger-700" role="alert">
+        <p className="mb-1 font-semibold">{t("errors.checkFields")}</p>
+        <ValidationList items={error.detail} />
+      </div>
+    );
+  }
   const code = error?.detail?.code || (typeof error?.detail === "string" ? error.detail : error?.message);
   return (
     <div className="rounded-xl border border-danger-500/30 bg-danger-50 p-3 text-sm text-danger-700" role="alert">

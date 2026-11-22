@@ -29,10 +29,12 @@ def farm_out(f: Farm) -> dict:
         "measured_area_ha": f.measured_area_ha, "area_validated": f.area_validated,
         "boundary": f.boundary_geojson, "exclusions": f.exclusions_geojson, "soil": f.soil,
         "budget_tnd": f.budget_tnd, "season": f.season, "existing_crops": f.existing_crops,
-        "irrigation_method": f.irrigation_method, "preferences": f.preferences, "plan_upload": f.plan_upload,
+        "irrigation_method": f.irrigation_method, "preferences": f.preferences,
+        "plan_upload": {k: v for k, v in (f.plan_upload or {}).items() if k != "parsed"} or None,
         "water_sources": [{c: getattr(s, c) for c in ("id", "kind", "name", "latitude", "longitude", "flow_m3h",
                                                       "max_hours_per_day", "annual_quota_m3", "pumping_depth_m",
-                                                      "elevation_m", "salinity_ds_m", "authorized")}
+                                                      "elevation_m", "salinity_ds_m", "authorized", "daily_volume_m3",
+                                                      "data_source")}
                           for s in f.water_sources],
         "equipment": [{"id": e.id, "kind": e.kind, "specs": e.specs} for e in f.equipment],
         "plans": [{"id": p.id, "version": p.version, "status": p.status, "created_at": p.created_at.isoformat()}
@@ -45,6 +47,8 @@ def plan_out(p: Plan) -> dict:
             "created_at": p.created_at.isoformat(), "summary": p.summary, "irrigation": p.irrigation,
             "energy": p.energy, "storage": p.storage, "contribution": p.contribution,
             "infrastructure": p.infrastructure_geojson, "inputs": p.inputs,
+            # the terrain or its resources changed since this plan was computed -> the UI recomputes it
+            "stale": (p.inputs or {}).get("fingerprint") != agrobrain.inputs_fingerprint(p.farm),
             "parcels": [{"id": x.id, "label": x.label, "crop": x.crop_code, "area_m2": x.area_m2,
                          "locked": x.locked, "water_source_id": x.water_source_id, "geometry": x.geometry_geojson,
                          "metrics": x.metrics} for x in p.parcels]}

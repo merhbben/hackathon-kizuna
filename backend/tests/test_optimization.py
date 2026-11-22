@@ -1,5 +1,5 @@
 import pytest
-from shapely.geometry import shape
+from shapely.geometry import Point, shape
 
 from app.engines import energy, optimizer, partition, storage
 from app.engines.irrigation import timetable_day
@@ -44,9 +44,22 @@ def test_partition_exact_areas_and_water_ordering():
         got = sum(p["area_m2"] for p in by[c])
         assert 0.85 * t < got <= t * 1.001
 
-    def mean(c):
-        return sum(p["pipe_length_m"] * p["area_m2"] for p in by[c]) / sum(p["area_m2"] for p in by[c])
+    src = partition.to_utm(Point(10.0801, 35.669))
+
+    def mean(c):   # mean distance of the crop's land to the borehole (5 m sampling grid)
+        tot = n = 0.0
+        for p in by[c]:
+            g = partition.to_utm(shape(p["geometry"]))
+            x0, y0, x1, y1 = g.bounds
+            for x in range(int(x0), int(x1) + 1, 5):
+                for y in range(int(y0), int(y1) + 1, 5):
+                    q = Point(x, y)
+                    if g.contains(q):
+                        tot += q.distance(src)
+                        n += 1
+        return tot / n
     assert mean("tomato") < mean("wheat")          # water-hungry crop closer to the borehole
+    assert all(p["pipe_length_m"] >= 0 for p in res["parcels"])
     polys = [partition.to_utm(shape(p["geometry"])) for p in res["parcels"]]
     for i in range(len(polys)):
         for j in range(i + 1, len(polys)):
@@ -87,3 +100,15 @@ def test_contribution_is_capped_and_a_proposal():
     c = storage.contribution({"wheat": 500}, {"wheat": 1_000_000}, {"wheat": 300_000}, 0.9, 0.5, 1.0, 0.10)
     assert c["status"] == "proposal_requires_validation"
     assert c["items"]["wheat"]["proposed_pct"] <= 10.0
+
+
+def test_partition_overlapping_obstacles_from_a_plan():
+    """Obstacles read on a plan can overlap (GeometryCollection invalid as a whole): no GEOS crash."""
+    def sq(x, y, d):
+        return {"type": "Polygon", "coordinates": [[[x, y], [x + d, y], [x + d, y + d], [x, y + d], [x, y]]]}
+    excl = {"type": "GeometryCollection", "geometries": [sq(10.0810, 35.6685, 0.0006), sq(10.0813, 35.6687, 0.0006)]}
+    res = partition.partition(FIELD, {"wheat": 1e4}, {"wheat": 0}, [], excl)
+    assert res["parcels"]
+    hole = partition.to_utm(shape(sq(10.0810, 35.6685, 0.0006)).union(shape(sq(10.0813, 35.6687, 0.0006))))
+    for q in res["parcels"]:
+        assert partition.to_utm(shape(q["geometry"])).intersection(hole).area < 1.0

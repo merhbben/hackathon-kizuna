@@ -1,9 +1,13 @@
+import p2ar from "./p2.ar";
+import plar from "./pl.ar";
+import cbar from "./cb.ar";
 import type { Dict } from "./fr";
 
 /** Derja tunisienne écrite en arabe — mots simples, peu de termes techniques. */
 const ar: Dict = {
   common: { add: "زيد", approve: "وافق", area: "المساحة", cancel: "بطّل", create: "اعمل", crop: "الزريعة", delete: "امسح", loading: "يستنّى شوية…", missing: "ناقص", noData: "ما فماش معطيات", production: "الصابة", reject: "ارفض", save: "سجّل", source: "المصدر", validate: "صادق رسميًا", water: "الماء", year: "العام" },
-  nav: { home: "الصفحة الوطنية", plan: "خطّط الزراعات", reserves: "المخزون والطاقة", alerts: "التنبيهات والتصرّف", terrain: "أرضي", myplan: "مخطّط الفلاحة متاعي", water: "الماء والضو", harvest: "الصابة والتخزين" },
+  nav: {
+    terrainData: "معطيات الأرض", home: "الصفحة الوطنية", plan: "خطّط الزراعات", reserves: "المخزون والطاقة", alerts: "التنبيهات والتصرّف", terrain: "أرضي", myplan: "مخطّط الفلاحة متاعي", water: "الماء والضو", harvest: "الصابة والتخزين" },
   layout: { ministry: "وزارة الفلاحة", farmer: "فضاء الفلاح", logout: "اخرج" },
   login: {
     hero: "نزرعو قدّ ما يلزم، وين يلزم.", heroText: "منصّة وحدة للوزارة والفلاحة: شنوّة تحتاج البلاد تاكل، شنوّة نزرعو، قدّاش ماء، الضو الشمسي والتخزين.",
@@ -18,7 +22,7 @@ const ar: Dict = {
   status: { draft: "مسودّة", validated: "مصادق عليه", pending: "يستنّى", approved: "مقبول", rejected: "مرفوض", accepted: "المخطّط معتمد", proposed: "مقترح", to_verify: "لازم يتثبّت" },
   pressure: { up: "الأسوام تنجّم تطلع", down: "الأسوام تنجّم تهبط", stable: "مستقرّ" },
   season: { all: "الكل", annual: "العام الكل", autumn_winter: "الخريف والشتاء", spring_summer: "الربيع والصيف", perennial: "الشجر" },
-  method: { drip: "قطرة قطرة", sprinkler: "الرشّ", surface: "السقي بالساقية" },
+  method: { rainfed: "بعلي", drip: "قطرة قطرة", sprinkler: "الرشّ", surface: "السقي بالساقية" },
   source: { well: "بير", borehole: "سونداج", reservoir: "ماجل / حوض", dam_network: "ماء السدّ", canal: "ساقية" },
   storage: { cold_room: "بيت تبريد", dry_store: "مخزن ناشف" },
   equipment: { pump: "موتور / پومپ", pv: "پانوات شمسية", battery: "باتري", grid: "كونتور الستاغ", cold_room: "بيت تبريد" },
@@ -28,9 +32,10 @@ const ar: Dict = {
   indicators: { irrigated_area_ha: "المساحات السقوية", water_allocation_mm3: "حصص الماء", dam_storage_mm3: "مخزون السدود", dam_capacity_mm3: "سعة السدود", population: "السكان في كل ولاية", yield_kg_ha: "المردود في الجهات", reserve_stock_kt: "المخزون الاحتياطي", cold_storage_capacity_t: "سعة التبريد" },
   tasks: { demand_per_capita: "الطلب على كل واحد", yield: "المردود" },
   errors: {
+    plan_not_understood: "الپلان ما تقراش (الحدود ولا السلّم موش موجودين).", invalid_corrections: "التصليحات موش صحيحة.", not_a_scene: "الملف هذا موش مخطّط AgroSphere.", scene_not_json: "الملف ما يتقراش.", scene_version_unsupported: "نسخة المخطّط موش مقبولة.", scene_boundary_invalid: "حدود المخطّط موش صحيحة.", scene_parcel_invalid: "قطعة موش صحيحة في الملف.", no_technical_plan: "ما فماش پلان تقني محطوط.",
     area_required: "اكتب المساحة الحقيقية متاع الأرض.", invalid_outline: "حدود الپلان موش صحيحة: صلّحها.",
     generic: "صار مشكل. عاود جرّب.", bad_credentials: "الإيمايل ولا كلمة السر غالطين.", too_many_attempts: "جرّبت برشا. استنّى ربع ساعة.", email_exists: "الإيمايل هذا مستعمل.",
-    area_not_validated: "أكّد مساحة أرضك قبل.", no_boundary: "ارسم ولا حطّ حدود الأرض قبل.", no_suitable_crop: "ما لقيناش زريعة تصلح بالمعطيات هاذي.",
+    side_length_needs_plan_file: "طول الجنب يصلّح السلّم متاع پلان محطوط.", unknown_edge: "جنب موش معروف.", source_position_missing: "حطّ كل سوندا على الپلان.", checkFields: "شوية قيم موش مقبولة:", fieldMax: "«{{field}}»: {{input}} فوق الحدّ المسموح ({{max}}).", fieldMin: "«{{field}}»: القيمة لازم تكون أكثر من {{min}}.", fieldInvalid: "«{{field}}»: قيمة غالطة.", outside_tunisia: "الحدود المرسومة برّا تونس.", boundary_too_small: "الحدود صغيرة برشا (أقل من 100 م²).", invalid_polygon: "حدود غالطة: الجنوب ما لازمهمش يتقاطعو.", area_not_validated: "أكّد مساحة أرضك قبل.", no_boundary: "ارسم ولا حطّ حدود الأرض قبل.", no_suitable_crop: "ما لقيناش زريعة تصلح بالمعطيات هاذي.",
     climate_unavailable: "معطيات الطقس موش متوفّرة توّا.", optimisation_infeasible: "ما فماش مخطّط ممكن بالشروط هاذي.", no_boundary_detected: "ما لقيناش حدود الأرض في الپلان. ارسمها على الخريطة.",
     unreadable_image: "التصويرة ما تتقراش.", unsupported_format: "نوع الملف موش مقبول.", file_too_large: "الملف ثقيل برشا.", need_two_control_points: "حطّ على الأقل زوز علامات.",
     need_control_points_or_scale: "حطّ زوز علامات، ولا علامة وحدة مع السلّم.", invalid_json: "القيمة موش صحيحة.", location_required: "حدّد بلاصة الأرض قبل.", ministry_only: "خاص بالوزارة.", internal_error: "مشكل في السيرفور.",
@@ -79,7 +84,7 @@ const ar: Dict = {
     energy_pv_cost_tnd_kwp: "سوم الشمسي (دينار/kWc)", energy_battery_cost_tnd_kwh: "سوم الباتري (دينار/kWh)", energy_grid_tariff_tnd_kwh: "تعريفة الستاغ (دينار/kWh)", energy_export_tariff_tnd_kwh: "سوم الشراء من الستاغ (دينار/kWh)", storage_cold_room_cost_tnd_m3: "سوم بيت التبريد (دينار/م³)",
     economics_reference_prices_tnd_kg: "أسوام مرجعية (دينار/كغ)", economics_reference_costs_tnd_ha: "كلفة مرجعية (دينار/هكتار)", alerts_rain_anomaly_warning: "حدّ تنبيه المطر", alerts_rain_anomaly_critical: "حدّ الخطر في المطر", alerts_dam_fill_warning_pct: "حدّ تنبيه السدود (٪)", alerts_dam_fill_critical_pct: "حدّ الخطر في السدود (٪)",
   },
-  terrain: {
+  terrain: { autoClimateSoil: "الطقس (NASA POWER، ERA5، Open-Meteo) والتربة (SoilGrids) يتجابو وحدهم من بلاصة الأرض: ما تكتب شي.", 
     inOtherGov: "الأرض هاذي في ولاية {{found}}، موش {{chosen}}. عاود حطّ الپلان ولا بدّل الولاية.", outsideTunisia: "الأرض هاذي برّا تونس: عاود حطّ الپلان على الخريطة.", useGov: "أرضي في {{gov}}",
     simpleTitle: "حطّ الپلان على الخريطة (ساهل)", realArea: "المساحة الحقيقية (هكتار)", realAreaHint: "ساعات مكتوبة على الپلان (مثلًا 50 092 م² = 5,01 هكتار)", rotationHint: "0 كان سهم الشمال في الپلان طالع للفوق", clickCenter: "انزل على الخريطة في وسط أرضك", placeAgain: "عاود حطّ الپلان على الخريطة", advanced: "الطريقة الدقيقة: علامات", simpleMode: "ارجع للطريقة الساهلة", notChecked: "الحدود واجدة", confirmMeasured: "أكّد {{ha}} هكتار", declaredUpdated: "المساحة المقيسة عوّضت المساحة اللي في الأوراق.", soilAutofilled: "التربة تعبّات وحدها (تقدير SoilGrids). تنجّم تصلّحها لوطة.", optionalSteps: "مراحل اختيارية — تحسّن المخطّط، أما تنجّم تحسب بلاش بيهم:", ckBoundary: "الحدود", ckArea: "المساحة مأكّدة", ckWater: "مصدر الماء", ckSoil: "التربة", optional: "اختياري", noWaterHint: "بلا مصدر ماء، AgroBrain يقترح كان زراعات بلا سقي (قمح، شعير، زيتون…). زيد البير ولا السوندا باش يكون عندك مخطّط سقوي.",
     title: "أرضي", subtitle: "وصف أرضك مرّة وحدة، و AgroBrain يكمّل الباقي.", newFarm: "ضيعة جديدة", createTitle: "زيد ضيعتي", createSub: "شوية معلومات باش نبداو",
@@ -99,6 +104,8 @@ const ar: Dict = {
     goPlan: "احسب المخطّط متاعي", needValidation: "أكّد مساحة الأرض قبل (المرحلة 1).",
   },
   plan: {
+    fallow: "موش مزروعة", fallowWater: "موش مزروعة (الماء ما يكفيش)",
+    mapSub2: "اسحب باش تتحرّك، الروليت ولا زوز صوابع باش تكبّر، انزل على قطعة", fit: "رجّع الكل", pipes: "القنوات", export: "صدّر", save: "سجّل", reopen: "حلّ مخطّط مسجّل", backToCurrent: "ارجع للمخطّط الحالي", opened: "مخطّط مسجّل (قراية برك)", whyNote: "الزراعات تتختار على أساس فلاحي (الطقس، التربة، الموسم، الماء، المردود، حاجة البلاد). البعد على السوندا يستعمل كان باش نحطّو الزراعات اللي تشرب أكثر قريب من الماء.", flowUnknown: "الدبي موش معروف: طول القنال والضياع ما تحسبوش", whyThis: "علاش الزريعة هاذي؟",
     rainfedOnly: "ما صرّحتش بحتى مصدر ماء: المخطّط هذا فيه كان زراعات بلا سقي. زيد البير ولا السوندا باش يكون سقوي:",
     title: "مخطّط الفلاحة متاعي", noFarm: "زيد أرضك قبل.", version: "المخطّط رقم {{v}} متاع {{date}}", none: "ما فماش مخطّط للتوّا", accept: "اعتمد المخطّط هذا", generate: "احسب المخطّط متاعي", regenerate: "عاود احسب", computing: "قاعد يحسب…",
     computingLong: "AgroBrain قاعد يحسب: الطقس، التربة، الماء، الزراعات، تقسيم القطع، السقي والشمسي…", emptyTitle: "المخطّط متاعك مازال ما تحسبش", emptyText: "انزل على «احسب المخطّط متاعي».",
@@ -110,6 +117,7 @@ const ar: Dict = {
     pipe: "القنال", cost: "الكلفة", revenue: "المدخول", toFill: "لازم يتعبّى", locked: "قطعة بدّلتها إنت", changeCrop: "بدّل الزريعة",
   },
   water: {
+    flowUnknown: "دبي الضخّ موش مكتوب على الپلان: الكميات محسوبة أما الوقت والمدّة لا. زيد الدبي في «شنوّة تقرا › التصليحات».", minimum: "أدنى حدّ، الدبي موش معروف",
     title: "الماء والضو", noPlan: "احسب المخطّط متاعك قبل.", soil: "التربة", program: "برنامج السقي", programSub: "أنا قطعة، أنا نهار، أنا ساعة، قدّاش من وقت وقدّاش ماء",
     next7: "السبعة أيام الجايين", peakWeek: "جمعة الذروة", fromForecast: "محسوب بالطقس المتوقّع (Open-Meteo)", fromClimate: "محسوب بالطقس العادي (NASA POWER)", conflicts: "{{n}} سقية ما دخلوش في النهار",
     nothing: "ما فماش سقي الجمعة هاذي", nothingText: "الزراعات مازالت ما تغرستش. شوف «جمعة الذروة».", time: "الوقت", parcel: "القطعة", duration: "المدّة", volume: "الماء", energy: "الضو", solar: "100٪ شمسي",
@@ -123,6 +131,7 @@ const ar: Dict = {
     hypothesis: "سيناريو «نبيعو حتى 80٪»: {{kwh}} kWh. فرضية برك — موش كمية مسموحة.", pvgisDown: "خدمة PVGIS موش خدّامة توّا: حساب الشمسي يتعمل في الحساب الجاي.",
   },
   harvest: {
+    existingRoom: "بيت تبريد موجود", fromPlan: "مقري من الپلان", floorArea: "مساحة الأرضية", roomVolumeUnknown: "العلو والسخانة والمنتوج المخزّن موش مكتوبين: السعة (طن) والاستهلاك ما تحسبوش للبيت هذا.",
     title: "الصابة والتخزين", forecast: "الصابة المتوقّعة", forecastSub: "تقدير: المساحة × المردود المرجعي × أثر التربة والماء", around: "حوالي",
     reserve: "المساهمة في المخزون", reserveSub: "اقتراح للضيعات الكبار", notLarge: "ضيعتك تتحسب صغيرة: ما فماش مساهمة مطلوبة.", noTargets: "الوزارة مازالت ما حدّدتش هدف مخزون للزراعات متاعك.",
     storage: "التخزين", proposalNote: "اقتراح محسوب (السقف {{cap}}٪)، لازم توافق عليه السلطة المختصّة. موش واجب قانوني.",
@@ -130,5 +139,12 @@ const ar: Dict = {
     capacity: "السعة", floor: "مساحة الأرضية", cooling: "قوّة التبريد", electric: "الضو", keep: "أقصى مدّة حفظ",
     fillPrices: "عبّي الأسوام والكلفة لوطة", prices: "الأسوام والكلفة", pricesSub: "سوم البيع والكلفة في الهكتار: AgroBrain يستعملهم في الحساب الجاي", price: "سوم البيع", costHa: "الكلفة", savedRegen: "تسجّل. عاود احسب المخطّط باش يدخلو.",
   },
+  imp: {"title": "حطّ پلان أرضك", "subtitle": "ملف واحد يكفي: AgroBrain يقرا الپلان، يثبّت في القياسات ويحضّرلك مخطّط الفلاحة.", "drop": "اسحب الپلان لهنا ولا انزل باش تختارو", "working": "AgroBrain قاعد يخدم على الپلان متاعك…", "step_read": "قراية الپلان (الرسم والكتيبة)", "step_understand": "التعرّف على الأرض والسوندا والمعدّات", "step_verify": "التثبّت في السلّم والمساحة", "step_optimise": "اختيار الزراعات وتقسيم القطع", "step_compute": "حساب الماء والضو والصابة", "needLocation": "الپلان ما فيهش الولاية ولا GPS. اختار الولاية باش نكمّلو.", "continue": "كمّل", "noForm": "ما فماش استمارة تعبّيها: كل شي مكتوب على الپلان يتقرا وحدو. اللي ناقص يتقال وتنجّم تزيدو بعد كان تحبّ.", "reportTitle": "شنوّة قرينا على الپلان متاعك", "r_method": "القراية", "r_scale": "السلّم", "r_area": "المساحة", "r_boundary": "الحدود", "r_location": "الولاية", "r_gps": "إحداثيات GPS", "r_water_points": "نقاط الماء", "r_water": "الماء الموجود", "r_flow": "دبي الضخّ", "r_pump": "الموتور", "r_solar": "الشمسي / الباتري", "r_zones": "المناطق اللي تعرّفنا عليها", "r_season": "الموسم", "r_soil": "التربة", "method_vector": "رسم ڤكتوري (دقيق)", "method_raster": "تصويرة + OCR", "units_per_m": "وحدة في المتر", "scale_scale_bar": "شريط السلّم", "scale_scale_bar_ticks": "شريط السلّم", "scale_ratio_text": "سلّم مكتوب", "scale_printed_area": "محسوب من المساحة المكتوبة", "printed": "مكتوب على الپلان", "vertices": "ركن", "absent": "موش مكتوب", "missing": "ناقص", "testData": "الپلان هذا فيه معطيات تجربة (موش مقيسة): النتائج باش نجرّبو بيها الأداة، موش باش نقرّرو على أرض حقيقية.", "whatWeRead": "شنوّة تقرا", "newPlan": "حطّ پلان آخر", "approxLocation": "البلاصة تقريبية: الپلان ما فيهش GPS، الأرض تحطّت في وسط الولاية (الطقس والتربة تقريبيين).", "correct": "صلّح", "correctionsTitle": "تصليحات اختيارية", "correctionsSub": "زيد كان اللي تعرفو. المخطّط الكل يتعاود يتحسب.", "lat": "خط العرض", "lon": "خط الطول", "applyRecompute": "طبّق وعاود احسب", "planBlocked": "مخطّط الفلاحة ما تحسبش بالمعلومات هاذي."},
+  warn: {"boundary_not_found": "ما لقيناش حدود الأرض في الپلان.", "scale_not_found": "ما لقيناش السلّم: زيد شريط سلّم ولا المساحة على الپلان.", "scale_from_area": "ما فماش شريط سلّم واضح: السلّم محسوب من المساحة المكتوبة.", "area_mismatch": "المساحة المقيسة {{measured}} م² ≠ المكتوبة {{stated}} م² ({{deviation}}٪). ثبّت في السلّم.", "area_not_printed": "المساحة موش مكتوبة على الپلان: محسوبة من السلّم.", "no_water_point": "ما لقينا حتى سوندا ولا نقطة ماء على الپلان.", "north_assumed": "ما لقيناش سهم الشمال: نعتبرو الشمال للفوق.", "location_missing": "لا ولاية لا GPS على الپلان.", "gps_missing": "ما فماش GPS: البلاصة تقريبية (وسط الولاية).", "water_volume_missing": "كمية الماء الموجودة موش مكتوبة.", "flow_missing": "دبي الموتور (م³/ساعة) موش مكتوب: ما نجّموش نحسبو وقت السقي.", "pump_missing": "قوّة الموتور موش مكتوبة.", "season_missing": "الموسم موش مكتوب: درسنا المواسم الكل.", "soil_missing": "التربة موش مكتوبة: استعملنا تقدير SoilGrids.", "declared_test_values": "القيم اللي على الپلان مكتوب عليها «معطيات تجربة (موش مقيسة)».", "ocr_low_confidence": "شوية كتيبة موش واضحة: {{texts}}"},
+  zone: {"reservoir": "ماجل / حوض", "solar": "پانوات شمسية", "building": "بناية", "cold_storage": "تخزين بارد", "orchard": "سانية موجودة", "exclusion": "منطقة مستثناة", "obstacle": "عائق", "path": "ثنية", "slope": "طلعة"},
+  why: {"suitable_here": "تصلح للطقس والتربة والموسم هوني (مردود نسبي {{relative_yield}}).", "water_productivity": "تعطي {{kg_m3}} كغ في كل م³ ماء.", "national_need": "حاجة البلاد للزريعة هاذي: {{priority_pct}}٪.", "yield_source": "المردود المرجعي: {{quality}}.", "margin": "الربح المقدّر: {{tnd_ha}} دينار في الهكتار.", "constraint_frost_risk": "ردّ بالك: خطر الجليدة.", "constraint_salinity": "ردّ بالك: الماء ولا التربة مالحين.", "constraint_soil_ph": "ردّ بالك: حموضة التربة.", "constraint_steep_slope": "ردّ بالك: الأرض طايحة برشا.", "constraint_rainfed_insufficient_rain": "المطر وحدو ما يكفيش.", "constraint_out_of_season": "موش وقتها.", "constraint_summer_not_hot_enough": "الصيف موش سخون برشا.", "constraint_perennial_not_planned": "الشجر موش مبرمج."},
+  p2: p2ar,
+  pl: plar,
+  cb: cbar,
 };
 export default ar;

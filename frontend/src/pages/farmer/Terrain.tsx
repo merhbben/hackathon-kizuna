@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useFarm } from "../../lib/farm";
 import { num } from "../../lib/format";
@@ -9,14 +9,14 @@ import { FarmMap } from "../../components/Maps";
 import { PlanEditor } from "../../components/PlanEditor";
 import { Badge, Card, ErrorBox, Field, Loader, Note, Quality, Tabs } from "../../components/ui";
 
-const TEXTURES = ["sand", "loamy_sand", "sandy_loam", "loam", "silt_loam", "sandy_clay_loam", "clay_loam", "silty_clay_loam", "sandy_clay", "silty_clay", "clay"];
 
 export default function Terrain() {
   const { t } = useTranslation();
   const { farms, farm, loading, select, setFarm } = useFarm();
-  const [creating, setCreating] = useState(false);
+  const nav = useNavigate();
   if (loading && !farm) return <Loader />;
-  if (!farm || creating) return <CreateFarm onDone={(f) => { setFarm(f); setCreating(false); }} onCancel={farm ? () => setCreating(false) : undefined} />;
+  // a farm is created from its outline (map or plan) in "Mon plan agricole": no surface or place typed by hand
+  if (!farm) return <Navigate to="/farm/plan" replace />;
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -26,7 +26,7 @@ export default function Terrain() {
         </div>
         <div className="flex items-center gap-2">
           {farms.length > 1 && <select className="input !w-56" value={farm.id} onChange={(e) => select(Number(e.target.value))}>{farms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}</select>}
-          <button className="btn-ghost" onClick={() => setCreating(true)}>+ {t("terrain.newFarm")}</button>
+          <button className="btn-ghost" onClick={() => nav("/farm/plan", { state: { newFarm: true } })}>+ {t("terrain.newFarm")}</button>
         </div>
       </div>
       <Checklist />
@@ -34,12 +34,9 @@ export default function Terrain() {
       <p className="text-sm font-semibold text-ink-500">{t("terrain.optionalSteps")}</p>
       <div className="grid gap-5 lg:grid-cols-2">
         <WaterStep />
-        <SoilStep />
-      </div>
-      <div className="grid gap-5 lg:grid-cols-2">
         <EquipmentStep />
-        <ProjectStep />
       </div>
+      <Note>{t("terrain.autoClimateSoil")}</Note>
     </div>
   );
 }
@@ -54,7 +51,6 @@ function Checklist() {
     { ok: !!farm.boundary, label: t("terrain.ckBoundary"), required: true },
     { ok: farm.area_validated, label: t("terrain.ckArea"), required: true },
     { ok: farm.water_sources.length > 0, label: t("terrain.ckWater"), required: false },
-    { ok: !!(farm.soil?.texture || farm.soil?.sand_pct !== undefined), label: t("terrain.ckSoil"), required: false },
   ];
   const ready = farm.boundary && farm.area_validated;
   const run = async () => {
@@ -78,36 +74,6 @@ function Checklist() {
       {ready && !farm.water_sources.length && <div className="mt-2"><Note tone="sun">{t("terrain.noWaterHint")}</Note></div>}
       {busy && <Loader label={t("plan.computingLong")} />}
       <div className="mt-2"><ErrorBox error={err} /></div>
-    </Card>
-  );
-}
-
-function CreateFarm({ onDone, onCancel }: { onDone: (f: any) => void; onCancel?: () => void }) {
-  const { t } = useTranslation();
-  const { govs, lang } = useNames();
-  const [f, setF] = useState({ name: "", governorate_code: "", delegation: "", declared_area_ha: "", season: "annual", irrigation_method: "drip" });
-  const [err, setErr] = useState<any>(null);
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setErr(null);
-    try { onDone(await api("/api/farms", { method: "POST", json: { ...f, declared_area_ha: f.declared_area_ha ? Number(f.declared_area_ha) : null, delegation: f.delegation || null } })); }
-    catch (x) { setErr(x); }
-  };
-  return (
-    <Card title={t("terrain.createTitle")} subtitle={t("terrain.createSub")} className="mx-auto max-w-2xl">
-      <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <Field label={t("farm.name")}><input className="input" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
-        <Field label={t("farm.governorate")}>
-          <select className="input" required value={f.governorate_code} onChange={(e) => setF({ ...f, governorate_code: e.target.value })}>
-            <option value="">—</option>{Object.entries(govs).map(([k, v]) => <option key={k} value={k}>{v[lang]}</option>)}
-          </select>
-        </Field>
-        <Field label={t("farm.delegation")}><input className="input" value={f.delegation} onChange={(e) => setF({ ...f, delegation: e.target.value })} /></Field>
-        <Field label={t("farm.declaredArea")} hint={t("farm.declaredAreaHint")}><input className="input" type="number" step="0.01" min="0" value={f.declared_area_ha} onChange={(e) => setF({ ...f, declared_area_ha: e.target.value })} /></Field>
-        <Field label={t("farm.season")}><select className="input" value={f.season} onChange={(e) => setF({ ...f, season: e.target.value })}>{["annual", "autumn_winter", "spring_summer"].map((s) => <option key={s} value={s}>{t(`season.${s}`)}</option>)}</select></Field>
-        <Field label={t("farm.method")}><select className="input" value={f.irrigation_method} onChange={(e) => setF({ ...f, irrigation_method: e.target.value })}>{["drip", "sprinkler", "surface"].map((s) => <option key={s} value={s}>{t(`method.${s}`)}</option>)}</select></Field>
-        <div className="sm:col-span-2"><ErrorBox error={err} /></div>
-        <div className="flex gap-2 sm:col-span-2"><button className="btn-primary">{t("common.create")}</button>{onCancel && <button type="button" className="btn-ghost" onClick={onCancel}>{t("common.cancel")}</button>}</div>
-      </form>
     </Card>
   );
 }
@@ -306,38 +272,6 @@ function WaterStep() {
   );
 }
 
-function SoilStep() {
-  const { t } = useTranslation();
-  const { farm, setFarm } = useFarm();
-  const [soil, setSoil] = useState<any>(farm.soil || {});
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<any>(null);
-  useEffect(() => setSoil(farm.soil || {}), [farm.id, farm.soil]);
-  const auto = async () => { setBusy(true); setErr(null); try { const s = await api(`/api/farms/${farm.id}/soil/autofill`, { method: "POST" }); setFarm({ ...farm, soil: s }); } catch (e) { setErr(e); } finally { setBusy(false); } };
-  const save = async () => {
-    setErr(null);
-    const clean: any = {};
-    for (const k of ["texture", "sand_pct", "clay_pct", "organic_matter_pct", "ph", "ece_ds_m", "slope_pct"]) if (soil[k] !== "" && soil[k] !== undefined && soil[k] !== null) clean[k] = k === "texture" ? soil[k] : Number(soil[k]);
-    try { setFarm(await api(`/api/farms/${farm.id}`, { method: "PATCH", json: { soil: { ...clean, source: soil.source && soil.source.startsWith("SoilGrids") ? soil.source : "farmer" } } })); } catch (e) { setErr(e); }
-  };
-  const isEstimated = (soil.source || "").startsWith("SoilGrids");
-  return (
-    <Card title={<span>3 · {t("terrain.stepSoil")}</span>} subtitle={t("terrain.stepSoilSub")} action={<button className="btn-ghost !py-1.5" onClick={auto} disabled={busy || !farm.latitude}>{busy ? "…" : t("terrain.autofill")}</button>}>
-      {soil.source && <div className="mb-3 flex items-center gap-2 text-xs text-ink-500">{t("common.source")} : {soil.source} <Quality q={isEstimated ? "estimated" : "measured"} /></div>}
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t("terrain.texture")}><select className="input" value={soil.texture || ""} onChange={(e) => setSoil({ ...soil, texture: e.target.value })}><option value="">—</option>{TEXTURES.map((x) => <option key={x} value={x}>{t(`texture.${x}`)}</option>)}</select></Field>
-        <Field label={t("terrain.slope")} hint="%"><input className="input" type="number" min="0" value={soil.slope_pct ?? ""} onChange={(e) => setSoil({ ...soil, slope_pct: e.target.value })} /></Field>
-        <Field label={t("terrain.sand")} hint="%"><input className="input" type="number" min="0" max="100" value={soil.sand_pct ?? ""} onChange={(e) => setSoil({ ...soil, sand_pct: e.target.value })} /></Field>
-        <Field label={t("terrain.clay")} hint="%"><input className="input" type="number" min="0" max="100" value={soil.clay_pct ?? ""} onChange={(e) => setSoil({ ...soil, clay_pct: e.target.value })} /></Field>
-        <Field label="pH"><input className="input" type="number" step="0.1" value={soil.ph ?? ""} onChange={(e) => setSoil({ ...soil, ph: e.target.value })} /></Field>
-        <Field label={t("terrain.soilSalinity")} hint="ECe dS/m"><input className="input" type="number" step="0.1" value={soil.ece_ds_m ?? ""} onChange={(e) => setSoil({ ...soil, ece_ds_m: e.target.value })} /></Field>
-      </div>
-      <button className="btn-primary mt-3" onClick={save}>{t("common.save")}</button>
-      <ErrorBox error={err} />
-    </Card>
-  );
-}
-
 function EquipmentStep() {
   const { t } = useTranslation();
   const { farm, setFarm } = useFarm();
@@ -353,55 +287,13 @@ function EquipmentStep() {
   };
   const del = async (id: number) => { await api(`/api/farms/${farm.id}/equipment/${id}`, { method: "DELETE" }); setFarm(await api(`/api/farms/${farm.id}`)); };
   return (
-    <Card title={<span>4 · {t("terrain.stepEquipment")}</span>} subtitle={t("terrain.stepEquipmentSub")}>
+    <Card title={<span>3 · {t("terrain.stepEquipment")}</span>} subtitle={t("terrain.stepEquipmentSub")}>
       {farm.equipment.length > 0 && <ul className="mb-3 flex flex-wrap gap-2">{farm.equipment.map((e: any) => <li key={e.id} className="chip bg-sun-100 text-sun-600 !text-xs">{t(`equipment.${e.kind}`)} · {Object.entries(e.specs).map(([k, v]) => `${v}`).join(" · ")}<button onClick={() => del(e.id)} className="ms-1">✕</button></li>)}</ul>}
       <div className="grid grid-cols-3 gap-3">
         <Field label={t("terrain.equipmentKind")}><select className="input" value={kind} onChange={(e) => { setKind(e.target.value); setSpecs({}); }}>{Object.keys(FIELDS).map((k) => <option key={k} value={k}>{t(`equipment.${k}`)}</option>)}</select></Field>
         {FIELDS[kind].map(([k, hint]) => <Field key={k} label={t(`equipmentField.${k}`)} hint={hint}><input className="input" value={specs[k] || ""} onChange={(e) => setSpecs({ ...specs, [k]: e.target.value })} /></Field>)}
       </div>
       <button className="btn-ghost mt-3" onClick={add}>{t("common.add")}</button>
-    </Card>
-  );
-}
-
-function ProjectStep() {
-  const { t } = useTranslation();
-  const { farm, setFarm } = useFarm();
-  const nav = useNavigate();
-  const { crops, crop } = useNames();
-  const [p, setP] = useState<any>({ budget_tnd: farm.budget_tnd ?? "", season: farm.season || "annual", irrigation_method: farm.irrigation_method, existing: (farm.existing_crops || []).map((c: any) => (typeof c === "string" ? c : c.crop)), prefs: farm.preferences || {} });
-  const [err, setErr] = useState<any>(null);
-  useEffect(() => setP({ budget_tnd: farm.budget_tnd ?? "", season: farm.season || "annual", irrigation_method: farm.irrigation_method, existing: (farm.existing_crops || []).map((c: any) => (typeof c === "string" ? c : c.crop)), prefs: farm.preferences || {} }), [farm.id]);
-  const save = async (go: boolean) => {
-    setErr(null);
-    try {
-      setFarm(await api(`/api/farms/${farm.id}`, { method: "PATCH", json: { budget_tnd: p.budget_tnd === "" ? null : Number(p.budget_tnd), season: p.season, irrigation_method: p.irrigation_method, existing_crops: p.existing, preferences: p.prefs } }));
-      if (go) nav("/farm/plan");
-    } catch (e) { setErr(e); }
-  };
-  const perennials = Object.values(crops).filter((c) => c.perennial);
-  return (
-    <Card title={<span>5 · {t("terrain.stepProject")}</span>} subtitle={t("terrain.stepProjectSub")}>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t("farm.season")}><select className="input" value={p.season} onChange={(e) => setP({ ...p, season: e.target.value })}>{["annual", "autumn_winter", "spring_summer"].map((s) => <option key={s} value={s}>{t(`season.${s}`)}</option>)}</select></Field>
-        <Field label={t("farm.method")}><select className="input" value={p.irrigation_method} onChange={(e) => setP({ ...p, irrigation_method: e.target.value })}>{["drip", "sprinkler", "surface"].map((s) => <option key={s} value={s}>{t(`method.${s}`)}</option>)}</select></Field>
-        <Field label={t("farm.budget")} hint="TND"><input className="input" type="number" min="0" value={p.budget_tnd} onChange={(e) => setP({ ...p, budget_tnd: e.target.value })} /></Field>
-        <Field label={t("terrain.coldShare")} hint="%"><input className="input" type="number" min="0" max="100" value={p.prefs.cold_room_share_pct ?? ""} onChange={(e) => setP({ ...p, prefs: { ...p.prefs, cold_room_share_pct: e.target.value === "" ? null : Number(e.target.value) } })} /></Field>
-      </div>
-      <div className="mt-3">
-        <span className="label">{t("terrain.existingTrees")}</span>
-        <div className="flex flex-wrap gap-2">{perennials.map((c) => {
-          const on = p.existing.includes(c.code);
-          return <button key={c.code} type="button" onClick={() => setP({ ...p, existing: on ? p.existing.filter((x: string) => x !== c.code) : [...p.existing, c.code] })} className={`chip !px-3 !py-1 !text-xs ${on ? "bg-brand-600 text-white" : "bg-brand-50 text-brand-700"}`}>{crop(c.code)}</button>;
-        })}</div>
-        <label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" className="accent-brand-600" checked={!!p.prefs.allow_new_orchards} onChange={(e) => setP({ ...p, prefs: { ...p.prefs, allow_new_orchards: e.target.checked } })} />{t("terrain.newOrchards")}</label>
-      </div>
-      <ErrorBox error={err} />
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button className="btn-ghost" onClick={() => save(false)}>{t("common.save")}</button>
-        <button className="btn-primary" disabled={!farm.area_validated} onClick={() => save(true)}>{t("terrain.goPlan")} →</button>
-        {!farm.area_validated && <span className="self-center text-xs text-ink-500">{t("terrain.needValidation")}</span>}
-      </div>
     </Card>
   );
 }

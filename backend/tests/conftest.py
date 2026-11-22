@@ -61,6 +61,9 @@ def offline(monkeypatch):
     monkeypatch.setattr(sources, "fetch_soil", no_net)
     monkeypatch.setattr(sources, "fetch_population", no_net)
     monkeypatch.setattr(sources, "fetch_recent_rain_anomaly", no_net)
+    from app.connectors import climate
+    for name in ("fetch_normals", "fetch_statistics", "fetch_recent", "fetch_forecast"):
+        monkeypatch.setattr(climate, name, no_net)
     yield
 
 

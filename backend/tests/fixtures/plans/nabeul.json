@@ -1,0 +1,81 @@
+{
+ "source": "Atlas_4_plans_agricoles_test.pdf (plans synthétiques fournis par l'utilisateur, NON OFFICIELS)",
+ "printed": {
+  "governorate": "TN-21",
+  "area_m2": 12000,
+  "water_m3_day": 7.5,
+  "pump_kw": 3.0,
+  "solar_kwc": 0.0,
+  "battery_kwh": 0.0
+ },
+ "expected_zones": {
+  "orchard": 1,
+  "building": 1
+ },
+ "expected_lines": {
+  "pipe": 1
+ },
+ "vertex_labels": [
+  "B1",
+  "B2",
+  "B3",
+  "B4"
+ ],
+ "vector_reference": {
+  "note": "géométrie lue dans les primitives vectorielles du PDF ; repère local en mètres, origine = coin bas-gauche de l'emprise du contour",
+  "boundary_m": [
+   [
+    0.0,
+    100.0
+   ],
+   [
+    120.0,
+    100.0
+   ],
+   [
+    120.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "edges": [
+   {
+    "from": "B4",
+    "to": "B3",
+    "length_m": 120.0
+   },
+   {
+    "from": "B3",
+    "to": "B2",
+    "length_m": 100.0
+   },
+   {
+    "from": "B2",
+    "to": "B1",
+    "length_m": 120.0
+   },
+   {
+    "from": "B1",
+    "to": "B4",
+    "length_m": 100.0
+   }
+  ],
+  "water_points": [
+   {
+    "name": "F1",
+    "kind": "borehole",
+    "x_m": 15.0,
+    "y_m": 76.0
+   }
+  ]
+ },
+ "tolerances": {
+  "area_pct_vector": 0.5,
+  "area_pct_raster": 2.0,
+  "water_point_m": 5.0,
+  "iou_raster": 0.97
+ }
+}

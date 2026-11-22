@@ -91,6 +91,14 @@ def effective_rain_monthly(p_mm: float) -> float:
     return 0.8 * p_mm - 25
 
 
+def effective_rain_usda_scs(p_mm: float) -> float:
+    """USDA Soil Conservation Service formula (CROPWAT option), monthly: removes surface runoff only.
+    Used by the rainfed soil-water balance, where deep percolation is handled by the root-zone capacity."""
+    if p_mm <= 250:
+        return max(0.0, p_mm * (125 - 0.2 * p_mm) / 125)
+    return 125 + 0.1 * p_mm
+
+
 # ---------------------------------------------------------------- soil -----
 @dataclass
 class SoilHydraulics:
@@ -236,3 +244,42 @@ def default_planting_date(c: Crop, year: int, today: date | None = None) -> date
             candidates.append(date(y, mid_month, day))
     future = [d for d in sorted(candidates) if d >= today]
     return future[0] if future else sorted(candidates)[-1]
+
+
+def rainfed_balance(c: Crop, planting: date, clim: MonthlyClimate, taw_mm_per_m: float,
+                    initial_depletion_frac: float = 1.0) -> dict:
+    """Rainfed daily root-zone water balance (FAO-56 ch. 8, eq. 84-85), no irrigation.
+
+    Dr(i) = Dr(i-1) - Peff(i) + ETa(i), bounded to [0, TAW]; rain above field capacity drains.
+    Peff: USDA-SCS monthly effective rain spread evenly over the days of the month.
+    ETa = Ks * ETc with Ks = (TAW - Dr) / ((1 - p) TAW) when Dr > RAW, else 1.
+    Root depth grows linearly from Zr_min to Zr_max during the initial + development stages.
+    Default: soil dry at sowing (initial_depletion_frac = 1), i.e. no stored water is assumed.
+    Returns ETc, ETa (mm) and ETa/ETc, used with FAO-33 Ky to estimate the rainfed yield.
+    """
+    cycle = c.cycle_days if not c.perennial else 365
+    li, ld = c.stages[0], c.stages[1]
+    zmin, zmax = c.root_depth_m
+    etc_tot = eta_tot = 0.0
+    zr = zmin if not c.perennial else zmax
+    dr = initial_depletion_frac * taw_mm_per_m * zr
+    for d in range(cycle):
+        day = planting + timedelta(days=d)
+        m = day.month - 1
+        new_zr = zmax if c.perennial else zmin + (zmax - zmin) * min(1.0, d / max(1, li + ld))
+        dr += taw_mm_per_m * (new_zr - zr) * initial_depletion_frac   # new soil explored is at its initial state
+        zr = new_zr
+        taw = taw_mm_per_m * zr
+        etc = kc_on_day(c, d) * clim.et0_mm_day[m]
+        p = adjusted_p(c.p, etc)
+        raw = p * taw
+        dim = calendar.monthrange(day.year, day.month)[1]
+        peff = effective_rain_usda_scs(clim.rain_mm[m]) / dim   # runoff only; percolation via the TAW cap
+        dr = max(0.0, dr - peff)
+        ks = 1.0 if dr <= raw else max(0.0, (taw - dr) / ((1 - p) * taw)) if taw > 0 else 0.0
+        eta = ks * etc
+        dr = min(taw, dr + eta)
+        etc_tot += etc
+        eta_tot += eta
+    return {"etc_mm": round(etc_tot, 1), "eta_mm": round(eta_tot, 1),
+            "ratio": round(eta_tot / etc_tot, 3) if etc_tot else 1.0}
